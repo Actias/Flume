@@ -1,0 +1,22 @@
+name: production
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
+
+protection_rules:
+  required_reviews: 1
+  required_status_checks:
+    strict: true
+    contexts:
+      - build-and-test
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: false
+  restrictions:
+    users: []
+    teams: []
