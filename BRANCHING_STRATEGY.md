@@ -44,6 +44,7 @@
 - **Release Candidate**: `v8.1.1-rc.1`
 
 **Versioning Strategy:**
+
 - **Major**: Aligns with .NET version (v8.x.x for .NET 8.0)
 - **Minor**: Release within major version (v8.1.x)
 - **Patch**: Hotfixes and bug fixes (v8.1.1)
