@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 var services = new ServiceCollection();
 
 // Register Flume
+// Use the assembly where your handlers are located
 services.AddFlume(Assembly.GetExecutingAssembly());
 
 var serviceProvider = services.BuildServiceProvider();

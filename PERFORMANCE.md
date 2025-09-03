@@ -135,7 +135,7 @@ When migrating from MediatR to Flume:
 1. **Immediate Performance Gains**: No code changes required
 2. **Better Resource Utilization**: Lower memory footprint
 3. **Improved Scalability**: Better performance under load
-4. **Future-Proof**: MIT license ensures continued development
+4. **Future-Proof**: MIT license ensures continued devment
 
 ## Best Practices
 

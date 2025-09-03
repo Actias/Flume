@@ -1,6 +1,6 @@
 # Flume
 
-A fast, lightweight, and simple mediator pattern implementation for .NET.
+A fast, lightweight, and simple mediator pattern implementation for .NET. A drop-in replacement for MediatR 12.x
 
 ## Features
 
@@ -23,7 +23,8 @@ dotnet add package Flume
 ```csharp
 // Register services
 var services = new ServiceCollection();
-services.AddFlume();
+
+services.AddFlume(Assembly);
 services.AddScoped<IRequestHandler<Ping, Pong>, PingHandler>();
 
 var serviceProvider = services.BuildServiceProvider();
@@ -32,33 +33,6 @@ var mediator = serviceProvider.GetRequiredService<IMediator>();
 // Send a request
 var response = await mediator.Send(new Ping { Message = "Hello" });
 ```
-
-## Documentation
-
-- [Branching Strategy](BRANCHING_STRATEGY.md) - Git workflow and release process
-- [Performance Benchmarks](PERFORMANCE.md) - Performance comparison with other mediators
-
-## Versioning Strategy
-
-Flume follows a .NET version-aligned versioning scheme:
-
-- **Major** - Aligns with the .NET version (e.g., v8.x.x for .NET 8.0)
-- **Minor** - Current release within the major version (e.g., v8.1.x)
-- **Patch** - Hotfixes and bug fixes (e.g., v8.1.1)
-
-This ensures compatibility and makes it clear which .NET version each release supports.
-
-## Development
-
-This project follows a structured branching strategy:
-
-- `main` - Production-ready releases
-- `develop` - Integration branch for features
-- `feature/*` - Individual feature development
-- `bugfix/*` - Bug fixes
-- `hotfix/*` - Critical production fixes
-
-See [BRANCHING_STRATEGY.md](BRANCHING_STRATEGY.md) for detailed workflow information.
 
 ## License
 
