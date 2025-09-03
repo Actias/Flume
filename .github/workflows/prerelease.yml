@@ -33,7 +33,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration Release
       
     - name: Pack prerelease
-      run: dotnet pack Flume/Flume.csproj --configuration Release --output ./nupkgs
+      run: dotnet pack src/Flume/Flume.csproj --configuration Release --output ./nupkgs
       
     - name: Publish prerelease to NuGet
       run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

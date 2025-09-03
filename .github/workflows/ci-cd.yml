@@ -36,7 +36,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration Release
       
     - name: Pack
-      run: dotnet pack Flume/Flume.csproj --no-build --configuration Release --output ./nupkgs
+      run: dotnet pack src/Flume/Flume.csproj --no-build --configuration Release --output ./nupkgs
       
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -62,7 +62,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
     - name: Pack for release
-      run: dotnet pack Flume/Flume.csproj --configuration Release --output ./nupkgs
+      run: dotnet pack src/Flume/Flume.csproj --configuration Release --output ./nupkgs
       
     - name: Publish to NuGet
       run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
@@ -94,7 +94,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
     - name: Pack for prerelease
-      run: dotnet pack Flume/Flume.csproj --configuration Release --output ./nupkgs
+      run: dotnet pack src/Flume/Flume.csproj --configuration Release --output ./nupkgs
       
     - name: Publish prerelease to NuGet
       run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
