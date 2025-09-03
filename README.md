@@ -53,8 +53,8 @@ This ensures compatibility and makes it clear which .NET version each release su
 This project follows a structured branching strategy:
 
 - `main` - Production-ready releases
-- `develop` - Integration branch for features
-- `feature/*` - Individual feature development
+- `dev` - Integration branch for features
+- `feature/*` - Individual feature devment
 - `bugfix/*` - Bug fixes
 - `hotfix/*` - Critical production fixes
 

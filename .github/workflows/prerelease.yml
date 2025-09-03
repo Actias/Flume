@@ -2,7 +2,7 @@ name: Pre-release Pipeline
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ dev ]
     tags: [ 'v*-beta*', 'v*-alpha*', 'v*-rc*' ]
 
 env:

@@ -2,10 +2,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
 
 env:
   DOTNET_VERSION: '8.0.413'
@@ -80,7 +80,7 @@ jobs:
   publish-prerelease:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/dev'
     
     steps:
     - name: Checkout code
