@@ -68,7 +68,7 @@ jobs:
       run: dotnet pack src/Flume/Flume.csproj --configuration Release --output ./nupkgs
       
     - name: Publish prerelease to NuGet
-      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       
     - name: Create GitHub Pre-release
       uses: softprops/action-gh-release@v1
@@ -103,7 +103,7 @@ jobs:
       run: dotnet pack src/Flume/Flume.csproj --configuration Release --output ./nupkgs
       
     - name: Publish to NuGet
-      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
