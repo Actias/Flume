@@ -35,12 +35,12 @@ public sealed class PerformanceBehaviour<TRequest, TResponse>(ILogger<TRequest> 
 
         var elapsed = Stopwatch.GetElapsedTime(startTime, endTime);
 
-        if (elapsed <= TimeSpan.FromMilliseconds(warningMilliseconds))
+        if (elapsed > TimeSpan.FromMilliseconds(warningMilliseconds))
         {
             logger.LogPerformance(typeof(TRequest).Name, elapsed.Milliseconds, request);
         }
 
-        if (errorMilliseconds is not null && elapsed <= TimeSpan.FromMilliseconds(errorMilliseconds.Value))
+        if (errorMilliseconds is not null && elapsed > TimeSpan.FromMilliseconds(errorMilliseconds.Value))
         {
             logger.LogPerformance(typeof(TRequest).Name, elapsed.Milliseconds, request);
         }
