@@ -1,25 +1,27 @@
 # Flume
 
-A drop-in replacement for Flume with simplified architecture and optimized performance (in certain use cases).
-
-![CI](https://github.com/actias/flume/workflows/CI%3ACD%20Pipeline/badge.svg)
+[![CI/CD Pipeline](https://github.com/Actias/Flume/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/Actias/Flume/actions/workflows/ci-cd.yml)
 [![NuGet](https://img.shields.io/nuget/dt/flume.svg)](https://www.nuget.org/packages/flume)
 [![NuGet](https://img.shields.io/nuget/v/flume.svg)](https://www.nuget.org/packages/flume)
 [![NuGet](https://img.shields.io/nuget/vpre/flume.svg)](https://www.nuget.org/packages/flume)
 
+A drop-in replacement for MediatR with simplified architecture and optimized performance (in certain use cases).
+
 This project IS NOT meant to detract from the fantastic work Jimmy Bogard and LuckyPennySoftware created. PERIOD.
 
-This project was unfortunately created out of necessity due to working with customers that either can't afford or have a hard time justifying the cost of more software.
+Flume is partially forked from MediatR 12.x, however, it has been paritally rewritten to adjust how spin-up and caching of handlers works to make it a more friendly for memory-constrained and smaller environments. One area that I've always thought MediatR could improve was memory usage and how GC worked. Over time I'd see a lot of instability in memory usage where usage would climb over time and then get collected making GC pressure a concern in memory-constrained situations. The goal with Flume is to provide an alternative to MediatR that's a little more tuned for small- to mid-sized applications where that could be a concern.
+
+To be fair, Flume was based on internal development of a MediatR 12.5.0 fork due to the licensing change, but has slowly morphed over time and is becoming/will become it's own thing. That's the reason for no direct fork. From here on out, Flume is on it's own.
 
 ## Features
 
 - **Drop-in Replacement**: Compatible with Flume 12.x APIs
 - **Performance Optimized**: Reduced reflection usage and improved caching
 - **Simplified Architecture**: Cleaner, more maintainable codebase
-- **Modern .NET**: Targets .NET 8.0+ with nullable reference types
+- **Modern .NET**: Targets .NET 8.0+ with nullable reference types. No .NET Framework here. Versions will be pinned to .NET LTS
 - **MIT License**: Open source and free to use
 
-## Why Flume?
+## Why use Flume?
 
 Flume 13.x moved to a commercial license, but Flume provides a modern, efficient alternative that:
 
@@ -27,7 +29,6 @@ Flume 13.x moved to a commercial license, but Flume provides a modern, efficient
 - **Optimized for Small-to-Mid Scale**: Perfect for applications with < 1000 requests/second
 - **Better Memory Efficiency**: Object pooling and caching reduce GC pressure over time
 - **Faster Startup Performance**: Optimized for cold starts and short-lived applications
-- **Simplified Architecture**: Cleaner, more maintainable codebase with fewer dependencies
 - **Modern .NET 8.0+**: Takes advantage of latest .NET performance improvements
 - **API Compatibility**: Drop-in replacement for MediatR 12.x
 
@@ -41,14 +42,14 @@ Flume 13.x moved to a commercial license, but Flume provides a modern, efficient
 - **Memory-constrained environments**
 - **Containerized deployments**
 
-## Why MediatR
+## Why use MediatR
 
 MediatR is a wonderful foundational library used in projects across the globe. It has a lot of maturity and community support. If stability and longevity is a concern, please consider supporting MediatR.
 
 MediatR excels in:
 
 - **High-Throughput Applications**: Superior performance at > 5000 requests/second
-- **Maximum Performance**: ~4.6x faster per request than Flume
+- **Maximum Performance**: ~4.6x faster per request than Flume at higher request rates
 - **Battle-Tested**: Mature, production-ready with extensive community support
 - **Concurrent Performance**: Better handling of high-concurrency scenarios
 - **Long-Running Services**: Optimized for sustained performance over time
@@ -63,42 +64,17 @@ MediatR excels in:
 
 ## Quick Choice Guide
 
-| Requests/Second | Flume Overhead | MediatR Overhead | Recommendation | Use Case |
-|-----------------|----------------|------------------|----------------|----------|
-| 100 | 0.04% | 0.008% | **Flume** | Internal APIs, admin dashboards |
-| 500 | 0.19% | 0.04% | **Flume** | Mobile backends, microservices |
-| 1000 | 0.39% | 0.08% | **Flume** | Web APIs, B2B integrations |
-| 5000 | 1.9% | 0.4% | **Either** | E-commerce, content APIs |
-| 10000+ | 3.9%+ | 0.8%+ | **MediatR** | High-traffic, enterprise apps |
-
-### Performance Characteristics
-
-- **Flume**: 387 ns per request, 528 B memory allocation
-- **MediatR**: 83 ns per request, 472 B memory allocation
-- **Difference**: ~4.6x performance gap, but negligible at < 1000 RPS
+| Requests/Second | Recommendation | Use Case |
+|-----------------|----------------|----------|
+| 100 | **Flume** | Internal APIs, admin dashboards |
+| 500 | **Flume** | Mobile backends, microservices |
+| 1000 | **Flume** | Web APIs, B2B integrations |
+| 5000 | **Either** | E-commerce, content APIs |
+| 10000+ | **MediatR** | High-traffic, enterprise apps |
 
 ## Right, but why 'FLUME'?
 
 Short Answer: Darn near every name I could think of on nuget.org was taken.
-
-## Future Development
-
-While the initial version of Flume is a drop-in replacement for Flume 12.x, it may diverge over time with later versions and should not be expected to keep up with the changes in Flume 13.x+. Flume after this point is it's own project. While matching features may be added in the future, the way they are implemented could differ wildly from Flume.
-
-Flume is specifically designed for .NET 8.0+ and drops support .Net Standard 2.0 which means no .NET 6.0 and .Net Framework support. This comes with trade-offs. Going forward, Flume will target the latest LTS branch of .NET. At least for the time being. This means that support will always be rolling forward.
-
-If you need support for older versions of .NET or don't like that, please use Flume and support the project in any way you can. Jimmy puts a lot of work into making sure Flume is as compatible as possible.
-
-## CI/CD and Release Process
-
-This project uses GitHub Actions for continuous integration and deployment:
-
-- **Build & Test**: Runs on every push and pull request
-- **Pre-releases**: Automatically published to NuGet from the `develop` branch
-- **Production Releases**: Automatically published to NuGet when tags are pushed
-- **Quality Gates**: All builds treat warnings as errors, code analysis runs on PRs
-
-See [BRANCHING_STRATEGY.md](BRANCHING_STRATEGY.md) for detailed information about the release process and branching strategy.
 
 ## Installation
 
@@ -206,6 +182,14 @@ await foreach (var number in mediator.CreateStream(new CountToTen()))
   Console.WriteLine(number);
 }
 ```
+
+## Future Development
+
+While the initial version of Flume is a drop-in replacement for MediatR 12.x, it may diverge over time with later versions and should not be expected to keep up with the changes in MediatR 13.x+. Flume after this point is it's own project. While matching features may be added in the future, the way they are implemented could differ wildly from Flume.
+
+Flume is specifically designed for .NET 8.0+ and drops support .Net Standard 2.0 which means no .NET 6.0 and .Net Framework support. This comes with trade-offs. Going forward, Flume will target the latest LTS branch of .NET. At least for the time being. This means that support will always be rolling forward.
+
+If you need support for older versions of .NET or don't like that, please use MediatR and support the project in any way you can. Jimmy puts a lot of work into making sure MediatR is as compatible as possible.
 
 ## Roadmap
 
@@ -346,18 +330,18 @@ This section outlines planned improvements and recommendations for Flume to enha
 - **✅ Startup Performance**: Faster cold starts for serverless scenarios
 - **✅ Production Ready**: Comprehensive benchmarking and testing implemented
 
-## Migration from Flume
+## Migration from MediatR
 
-To migrate from Flume to Flume:
+To migrate from MediatR to Flume:
 
-1. Replace `Flume` package with `Flume`
-2. Update using statements from `Flume` to `Flume`
-3. Replace `services.AddFlume()` with `services.AddFlume()`
-4. Your existing handlers and requests will work without changes
+1. Replace `MediatR` package with `Flume`
+2. Update using statements from `MediatR` to `Flume`
+3. Replace `services.AddMediatR()` with `services.AddFlume()`
+4. Your existing handlers and requests should work without changes
 
 ## API Compatibility
 
-Flume maintains full API compatibility with Flume 12.x:
+Flume maintains full API compatibility with MediatR 12.x:
 
 - `IMediator` interface
 - `ISender` interface  

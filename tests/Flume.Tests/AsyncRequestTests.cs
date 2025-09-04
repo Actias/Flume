@@ -16,8 +16,7 @@ public sealed class AsyncRequestTests
         var services = new ServiceCollection();
 
         services.AddFlume();
-        services.AddScoped<IRequestHandler<AsyncRequest, int>, AsyncRequestHandler>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var mediator = serviceProvider.GetRequiredService<IMediator>();
         var value = RandomNumberGenerator.GetInt32(0, 100);

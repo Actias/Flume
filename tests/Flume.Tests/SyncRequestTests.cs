@@ -19,8 +19,7 @@ public sealed class SyncRequestTests
         var services = new ServiceCollection();
 
         services.AddFlume();
-        services.AddScoped<IRequestHandler<SyncRequest, int>, SyncRequestHandler>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var mediator = serviceProvider.GetRequiredService<IMediator>();
         var value = RandomNumberGenerator.GetInt32(0, 100);

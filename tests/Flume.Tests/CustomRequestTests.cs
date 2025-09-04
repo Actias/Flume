@@ -16,8 +16,7 @@ public sealed class CustomRequestTests
         var services = new ServiceCollection();
 
         services.AddFlume();
-        services.AddScoped<IRequestHandler<CustomRequest, CustomResponse>, CustomRequestHandler>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var mediator = serviceProvider.GetRequiredService<IMediator>();
         var value1 = RandomNumberGenerator.GetInt32(0, 100);

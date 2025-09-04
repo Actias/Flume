@@ -37,7 +37,6 @@ public sealed class DependencyInjectionTests
         var services = new ServiceCollection();
 
         services.AddFlume();
-        services.AddScoped<IRequestHandler<SyncServiceRequest, int>, SyncServiceRequestHandler>();
         services.AddScoped<IMockService, MockService>();
 
         var serviceProvider = services.BuildServiceProvider();
