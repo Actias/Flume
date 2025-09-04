@@ -1,55 +1,66 @@
 using System;
 using System.Linq;
-using Flume.Handlers;
 using Flume.Pipelines;
+using Flume.Registration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Flume;
 
 /// <summary>
-/// Extensions for Microsoft.Extensions.DependencyInjection
+/// Extensions for adding Flume to an <see cref="IServiceCollection"/>
 /// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Add Flume to the service collection
+    /// Registers handlers and mediator types from the calling assembly
     /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="config">Optional configuration</param>
-    /// <returns>The service collection</returns>
-    public static IServiceCollection AddFlume(this IServiceCollection services, Action<FlumeConfiguration>? config = null)
+    /// <param name="services">Service collection</param>
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddFlume(this IServiceCollection services)
     {
-        var configuration = new FlumeConfiguration();
-        config?.Invoke(configuration);
-
         // Register the mediator
         services.AddScoped<IMediator, Mediator>();
         services.AddScoped<ISender>(provider => provider.GetRequiredService<IMediator>());
         services.AddScoped<IPublisher>(provider => provider.GetRequiredService<IMediator>());
-
-        // Register handlers
-        if (configuration.ScanForHandlers)
-        {
-            services.AddHandlers();
-        }
+        
+        services.AddHandlers();
 
         return services;
     }
 
     /// <summary>
-    /// Add Flume to the service collection with assembly scanning
+    /// Registers handlers and mediator types from the specified assemblies
     /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="assemblies">Assemblies to scan for handlers</param>
-    /// <returns>The service collection</returns>
-    public static IServiceCollection AddFlume(this IServiceCollection services, params System.Reflection.Assembly[] assemblies)
+    /// <param name="services">Service collection</param>
+    /// <param name="configuration">The action used to configure the options</param>
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddFlume(this IServiceCollection services, Action<FlumeConfiguration> configuration)
     {
-        services.AddFlume();
-        
-        if (assemblies.Length > 0)
+        var serviceConfig = new FlumeConfiguration();
+
+        configuration.Invoke(serviceConfig);
+
+        return services.AddFlume(serviceConfig);
+    }
+
+    /// <summary>
+    /// Registers handlers and mediator types from the specified assemblies
+    /// </summary>
+    /// <param name="services">Service collection</param>
+    /// <param name="configuration">Configuration options</param>
+    /// <returns>Service collection</returns>
+    public static IServiceCollection AddFlume(this IServiceCollection services, FlumeConfiguration configuration)
+    {
+        if (configuration.AssembliesToRegister.Count == 0)
         {
-            services.AddHandlers(assemblies);
+            throw new ArgumentException("No assemblies found to scan. Supply at least one assembly to scan for handlers.");
         }
+
+        ServiceRegistrar.SetGenericRequestHandlerRegistrationLimitations(configuration);
+
+        ServiceRegistrar.AddFlumeClassesWithTimeout(services, configuration);
+
+        ServiceRegistrar.AddRequiredServices(services, configuration);
 
         return services;
     }
@@ -140,15 +151,4 @@ public static class Extensions
             }
         }
     }
-}
-
-/// <summary>
-/// Configuration for Flume
-/// </summary>
-public class FlumeConfiguration
-{
-    /// <summary>
-    /// Whether to automatically scan for handlers in the calling assembly
-    /// </summary>
-    public bool ScanForHandlers { get; set; } = true;
 }

@@ -9,15 +9,15 @@ using Microsoft.Extensions.Caching.Distributed;
 namespace Flume.Behaviors;
 
 public sealed class CacheResultBehaviour<TRequest, TResponse>(IDistributedCache cache)
-    : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+    : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> nextDelegate, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         var attribute = typeof(TRequest).GetCustomAttribute<CacheResultAttribute>();
 
         if (attribute == null)
         {
-            return await nextDelegate(cancellationToken);
+            return await next(cancellationToken);
         }
 
         string cacheKey;
@@ -35,7 +35,7 @@ public sealed class CacheResultBehaviour<TRequest, TResponse>(IDistributedCache 
 
             if (property == null)
             {
-                return await nextDelegate(cancellationToken);
+                return await next(cancellationToken);
             }
 
             var value = property.GetValue(request);
@@ -50,7 +50,7 @@ public sealed class CacheResultBehaviour<TRequest, TResponse>(IDistributedCache 
             return response;
         }
 
-        response = await nextDelegate(cancellationToken);
+        response = await next(cancellationToken);
 
         await cache.SetAsync(
                 cacheKey,

@@ -20,11 +20,16 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+        <PackageReference Include="Moq" Version="4.20.70" />
+        <PackageReference Include="FluentAssertions" Version="6.12.0" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Flume\Flume.csproj" />
+        <ProjectReference Include="..\..\src\Flume.Behaviors\Flume.Behaviors.csproj" />
     </ItemGroup>
 
 </Project>

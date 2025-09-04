@@ -1,12 +1,12 @@
 # Performance Optimizations in Flume
 
-This document outlines the key performance improvements made in Flume compared to MediatR 12.x.
+This document outlines the key performance improvements made in Flume compared to Flume 12.x.
 
 ## Key Optimizations
 
 ### 1. Reduced Reflection Usage
 
-**MediatR Approach:**
+**Flume Approach:**
 - Uses `Activator.CreateInstance()` for every handler wrapper creation
 - Performs interface type checking on every request
 - Creates wrapper types dynamically for each request type
@@ -18,7 +18,7 @@ This document outlines the key performance improvements made in Flume compared t
 
 ### 2. Improved Caching Strategy
 
-**MediatR:**
+**Flume:**
 ```csharp
 // Creates new wrapper every time
 var handler = _requestHandlers.GetOrAdd(request.GetType(), static requestType =>
@@ -39,7 +39,7 @@ var handler = (RequestHandlerWrapper<TResponse>)_requestHandlers.GetOrAdd(
 
 ### 3. Optimized Pipeline Execution
 
-**MediatR:**
+**Flume:**
 - Uses `Aggregate` with lambda expressions for pipeline building
 - Creates new delegates for each pipeline step
 - Potential for delegate allocation during execution
@@ -51,7 +51,7 @@ var handler = (RequestHandlerWrapper<TResponse>)_requestHandlers.GetOrAdd(
 
 ### 4. Memory Allocation Reduction
 
-**MediatR:**
+**Flume:**
 - Creates new wrapper objects for each request type
 - Allocates new delegate instances during pipeline execution
 - Potential boxing/unboxing in some scenarios
@@ -63,7 +63,7 @@ var handler = (RequestHandlerWrapper<TResponse>)_requestHandlers.GetOrAdd(
 
 ### 5. Type Safety Improvements
 
-**MediatR:**
+**Flume:**
 - Some runtime type checking
 - Potential for runtime errors in type resolution
 
@@ -86,7 +86,7 @@ var handler = (RequestHandlerWrapper<TResponse>)_requestHandlers.GetOrAdd(
 When running the same workload:
 
 ```
-MediatR 12.x:
+Flume 12.x:
 - Average Request Time: 2.1ms
 - Memory Allocations: 1,200 bytes per request
 - Handler Resolution: 0.8ms
@@ -130,7 +130,7 @@ var result = behaviors.Aggregate(handlerDelegate, (next, pipeline) =>
 
 ## Migration Benefits
 
-When migrating from MediatR to Flume:
+When migrating from Flume to Flume:
 
 1. **Immediate Performance Gains**: No code changes required
 2. **Better Resource Utilization**: Lower memory footprint
@@ -148,4 +148,4 @@ To maximize performance with Flume:
 
 ## Conclusion
 
-Flume provides significant performance improvements over MediatR 12.x while maintaining full API compatibility. The optimizations focus on reducing reflection overhead, improving caching strategies, and minimizing memory allocations, resulting in a faster, more efficient mediator implementation.
+Flume provides significant performance improvements over Flume 12.x while maintaining full API compatibility. The optimizations focus on reducing reflection overhead, improving caching strategies, and minimizing memory allocations, resulting in a faster, more efficient mediator implementation.

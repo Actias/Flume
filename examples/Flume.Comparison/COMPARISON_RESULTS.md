@@ -4,12 +4,12 @@
 ```
 Flume.Comparison/
 ├── Program.cs                           # Main comparison logic
-├── MediatR/                             # MediatR-specific classes
-│   ├── MediatRRequest.cs               # MediatR request definition
-│   └── MediatRHandler.cs               # MediatR handler implementation
-├── Flume/                      # Flume-specific classes
-│   ├── FlumeRequest.cs        # Flume request definition
-│   └── FlumeHandler.cs        # Flume handler implementation
+├── Flume/                             # Flume-specific classes
+│   ├── FlumeRequest.cs               # Flume request definition
+│   └── FlumeHandler.cs               # Flume handler implementation
+├── MediatR/                      # MediatR-specific classes
+│   ├── MediatRRequest.cs        # MediatR request definition
+│   └── MediatRHandler.cs        # MediatR handler implementation
 ├── Benchmarks/                          # Performance benchmarking
 │   └── MediatorBenchmarks.cs           # BenchmarkDotNet benchmarks
 ├── README.md                            # Project documentation
@@ -25,4 +25,4 @@ Flume.Comparison/
 ### Namespace Resolution
 The project uses `global::` namespace qualifiers to avoid conflicts between:
 - Library namespaces (e.g., `global::MediatR.IMediator`)
-- Local project namespaces (e.g., `Flume.Comparison.MediatR`)
+- Local project namespaces (e.g., `Flume.Comparison.Flume`)

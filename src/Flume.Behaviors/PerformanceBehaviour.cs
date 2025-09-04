@@ -8,15 +8,15 @@ using Microsoft.Extensions.Logging;
 namespace Flume.Behaviors;
 
 public sealed class PerformanceBehaviour<TRequest, TResponse>(ILogger<TRequest> logger) 
-    : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+    : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> nextDelegate, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         var attribute = typeof(TRequest).GetCustomAttribute<PerformanceCheckAttribute>();
 
         if (attribute == null)
         {
-            return await nextDelegate(cancellationToken);
+            return await next(cancellationToken);
         }
 
         var warningMilliseconds = attribute.ExecutionWarningInMilliseconds <= 0
@@ -29,7 +29,7 @@ public sealed class PerformanceBehaviour<TRequest, TResponse>(ILogger<TRequest> 
 
         var startTime = Stopwatch.GetTimestamp();
 
-        var response = await nextDelegate(cancellationToken);
+        var response = await next(cancellationToken);
 
         var endTime = Stopwatch.GetTimestamp();
 
