@@ -1,6 +1,6 @@
 # Flume
 
-A fast, lightweight, and simple mediator pattern implementation for .NET. A drop-in replacement for Flume 12.x
+A fast, lightweight, and simple mediator pattern implementation for .NET. A drop-in replacement for MediatR 12.x
 
 ## Features
 
