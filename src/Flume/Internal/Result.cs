@@ -17,8 +17,7 @@ public readonly struct Result<T>
     /// to access the encapsulated data directly.</remarks>
     public readonly T? Value;
 
-    /// <summary>
-    /// 
+    /// Indicates whether the result represents a successful outcome.
     /// </summary>
     public readonly bool IsSuccess;
     public readonly string? Error;
