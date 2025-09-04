@@ -42,6 +42,6 @@ public sealed class CustomRequestTests
         var mediator = serviceProvider.GetRequiredService<IMediator>();
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.Send((SyncRequest)null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.Send((CustomRequest)null!));
     }
 }
