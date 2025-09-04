@@ -13,7 +13,7 @@ public static class Program
 {
     public static async Task Main()
     {
-        Console.WriteLine("=== Flume vs Flume 12.5.0 Comparison ===\n");
+        Console.WriteLine("=== Flume vs MediatR 12.5.0 Comparison ===\n");
 
         // Feature comparison
         await DemonstrateFeatures();
