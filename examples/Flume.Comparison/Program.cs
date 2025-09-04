@@ -111,23 +111,23 @@ public static class Program
 
         var flumeEnd = Stopwatch.GetTimestamp();
 
-        var mediatrTime = Stopwatch.GetElapsedTime(mediatRStart, mediatREnd);
+        var mediatRTime = Stopwatch.GetElapsedTime(mediatRStart, mediatREnd);
         var flumeTime = Stopwatch.GetElapsedTime(flumeStart, flumeEnd);
         
-        Console.WriteLine($"MediatR: {mediatrTime.Ticks} ticks for {iterations} requests.");
+        Console.WriteLine($"MediatR: {mediatRTime.Ticks} ticks for {iterations} requests.");
         Console.WriteLine($"Flume: {flumeTime.Ticks} ticks for {iterations} requests.");
 
-        if (mediatrTime.Ticks < flumeTime.Ticks)
+        if (mediatRTime.Ticks < flumeTime.Ticks)
         {
-            Console.WriteLine($"MediatR is {(double)flumeTime.Ticks / mediatrTime.Ticks:F2}x faster");
+            Console.WriteLine($"MediatR is {(double)flumeTime.Ticks / mediatRTime.Ticks:F2}x faster");
         }
 
-        if (mediatrTime.Ticks > flumeTime.Ticks)
+        if (mediatRTime.Ticks > flumeTime.Ticks)
         {
-            Console.WriteLine($"Flume is {(double)mediatrTime.Ticks / flumeTime.Ticks:F2}x faster");
+            Console.WriteLine($"Flume is {(double)mediatRTime.Ticks / flumeTime.Ticks:F2}x faster");
         }
 
-        if (mediatrTime.Ticks == flumeTime.Ticks)
+        if (mediatRTime.Ticks == flumeTime.Ticks)
         {
             Console.WriteLine("Both are equal");
         }
