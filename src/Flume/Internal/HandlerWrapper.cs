@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Flume.Handlers;
 using Flume.NotificationPublishers;
 using Flume.Pipelines;
 using Microsoft.Extensions.DependencyInjection;
+
 
 namespace Flume.Internal;
 
@@ -16,6 +16,8 @@ namespace Flume.Internal;
 internal abstract class HandlerWrapper
 {
     public abstract Task<object?> Handle(object request, IServiceProvider serviceProvider, CancellationToken cancellationToken);
+    
+
 }
 
 /// <summary>

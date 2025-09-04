@@ -1,5 +1,3 @@
-using Flume.Handlers;
-
 #pragma warning disable CA1303 // Localization not needed for console output
 
 namespace Flume.Samples;

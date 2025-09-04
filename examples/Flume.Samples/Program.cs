@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Flume;
 using Flume.Samples;
+using Flume.NotificationPublishers;
 using Microsoft.Extensions.DependencyInjection;
 
 #pragma warning disable CA1303 // Localization not needed for console output
@@ -10,7 +11,7 @@ var services = new ServiceCollection();
 
 // Register Flume
 // Use the assembly where your handlers are located
-services.AddFlume(Assembly.GetExecutingAssembly());
+services.AddFlume(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 var serviceProvider = services.BuildServiceProvider();
 var mediator = serviceProvider.GetRequiredService<IMediator>();
@@ -27,3 +28,12 @@ Console.WriteLine($"Pong sent, result: {pongResult}");
 await mediator.Publish(new Pinged());
 
 Console.WriteLine("Notification published");
+
+
+Console.WriteLine();
+Console.WriteLine("Running Performance Benchmarks...");
+Console.WriteLine("=================================");
+
+var benchmarks = new PerformanceBenchmarks();
+
+await benchmarks.RunAllBenchmarks();

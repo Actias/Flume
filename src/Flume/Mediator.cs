@@ -23,9 +23,11 @@ public class Mediator(IServiceProvider serviceProvider, INotificationPublisher p
     private readonly INotificationPublisher _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
     
     // Thread-safe caches for handler wrappers to avoid repeated reflection
-    private static readonly ConcurrentDictionary<Type, HandlerWrapper> RequestHandlers = new();
-    private static readonly ConcurrentDictionary<Type, NotificationHandlerWrapper> NotificationHandlers = new();
-    private static readonly ConcurrentDictionary<Type, StreamRequestHandlerWrapper> StreamRequestHandlers = new();
+    private static readonly LockFreeCache<Type, HandlerWrapper> RequestHandlers = new(1000);
+    private static readonly LockFreeCache<Type, NotificationHandlerWrapper> NotificationHandlers = new(1000);
+    private static readonly LockFreeCache<Type, StreamRequestHandlerWrapper> StreamRequestHandlers = new(1000);
+    
+
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Mediator"/> class.
@@ -159,6 +161,8 @@ public class Mediator(IServiceProvider serviceProvider, INotificationPublisher p
     // Factory methods for creating handler wrappers - optimized to reduce reflection overhead
     private static RequestHandlerWrapper<TResponse> CreateRequestHandlerWrapper<TResponse>(Type requestType)
     {
+        // Use TypeCache to get pre-compiled handler info (for future use)
+        _ = TypeCache.GetOrAddHandlerInfo(requestType);
         var wrapperType = typeof(RequestHandlerWrapperImpl<,>).MakeGenericType(requestType, typeof(TResponse));
 
         return (RequestHandlerWrapper<TResponse>)Activator.CreateInstance(wrapperType)!;
