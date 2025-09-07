@@ -2,7 +2,6 @@
 using System.Reflection;
 using Flume.Behaviors.Attributes;
 using Flume.Behaviors.Extensions;
-using Flume.Pipelines;
 using Microsoft.Extensions.Logging;
 
 namespace Flume.Behaviors;

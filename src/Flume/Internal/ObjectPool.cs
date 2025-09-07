@@ -25,7 +25,7 @@ public class ObjectPool<T>(int maxPoolSize = 100, Func<T>? factory = null) where
     /// </summary>
     public void Return(T item)
     {
-        if (item != null && _pool.Count < maxPoolSize)
+        if (_pool.Count < maxPoolSize)
         {
             _pool.Enqueue(item);
         }

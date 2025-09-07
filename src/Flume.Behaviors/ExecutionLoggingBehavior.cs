@@ -1,5 +1,4 @@
 ﻿using Flume.Behaviors.Extensions;
-using Flume.Pipelines;
 using Microsoft.Extensions.Logging;
 
 #pragma warning disable CA1812

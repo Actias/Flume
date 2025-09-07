@@ -292,7 +292,7 @@ public class FlumeConfiguration
     {
         foreach (var openBehavior in openBehaviors)
         {
-            AddOpenBehavior(openBehavior.OpenBehaviorType!, openBehavior.ServiceLifetime);
+            AddOpenBehavior(openBehavior.OpenBehaviorType, openBehavior.ServiceLifetime);
         }
 
         return this;

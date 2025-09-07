@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Flume.Pipelines;
+namespace Flume;
 
 #pragma warning disable CA1711 // Naming follows .NET ecosystem conventions
 #pragma warning disable CA1716 // Naming follows .NET ecosystem conventions

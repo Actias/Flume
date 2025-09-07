@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -23,11 +22,9 @@ public class Mediator(IServiceProvider serviceProvider, INotificationPublisher p
     private readonly INotificationPublisher _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
     
     // Thread-safe caches for handler wrappers to avoid repeated reflection
-    private static readonly LockFreeCache<Type, HandlerWrapper> RequestHandlers = new(1000);
-    private static readonly LockFreeCache<Type, NotificationHandlerWrapper> NotificationHandlers = new(1000);
-    private static readonly LockFreeCache<Type, StreamRequestHandlerWrapper> StreamRequestHandlers = new(1000);
-    
-
+    private static readonly LockFreeCache<Type, HandlerWrapper> RequestHandlers = new();
+    private static readonly LockFreeCache<Type, NotificationHandlerWrapper> NotificationHandlers = new();
+    private static readonly LockFreeCache<Type, StreamRequestHandlerWrapper> StreamRequestHandlers = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Mediator"/> class.
