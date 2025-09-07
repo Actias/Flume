@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Flume.Behaviors.Attributes;
 using Flume.Behaviors.Extensions;
-using Flume.Pipelines;
 using Microsoft.Extensions.Caching.Distributed;
 
 #pragma warning disable CA1812

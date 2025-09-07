@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Flume.Pipelines;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Flume.Entities;
