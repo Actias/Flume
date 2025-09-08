@@ -3,15 +3,12 @@
 [![CI/CD Pipeline](https://github.com/Actias/Flume/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/Actias/Flume/actions/workflows/ci-cd.yml)
 [![NuGet](https://img.shields.io/nuget/dt/flume.svg)](https://www.nuget.org/packages/flume)
 [![NuGet](https://img.shields.io/nuget/v/flume.svg)](https://www.nuget.org/packages/flume)
-[![NuGet](https://img.shields.io/nuget/vpre/flume.svg)](https://www.nuget.org/packages/flume)
 
 A drop-in replacement for MediatR with simplified architecture and optimized performance (in certain use cases).
 
 This project IS NOT meant to detract from the fantastic work Jimmy Bogard and LuckyPennySoftware created. PERIOD.
 
-Flume is partially forked from MediatR 12.x, however, it has been paritally rewritten to adjust how spin-up and caching of handlers works to make it a more friendly for memory-constrained and smaller environments. One area that I've always thought MediatR could improve was memory usage and how GC worked. Over time I'd see a lot of instability in memory usage where usage would climb over time and then get collected making GC pressure a concern in memory-constrained situations. The goal with Flume is to provide an alternative to MediatR that's a little more tuned for small- to mid-sized applications where that could be a concern.
-
-To be fair, Flume was based on internal development of a MediatR 12.5.0 fork due to the licensing change, but has slowly morphed over time and is becoming/will become it's own thing. That's the reason for no direct fork. From here on out, Flume is on it's own.
+Flume is partially forked from MediatR 12.x, however, it has been partially rewritten to adjust how spin-up and caching of handlers works to make it a more friendly for memory-constrained and smaller environments. One area that I've always thought MediatR could improve was memory usage and how GC worked. Over time I'd see a lot of instability in memory usage where usage would climb over time and then get collected making GC pressure a concern in memory-constrained situations. The goal with Flume is to provide an alternative to MediatR that's a little more tuned for small- to mid-sized applications where that could be a concern.
 
 ## Features
 
@@ -23,7 +20,7 @@ To be fair, Flume was based on internal development of a MediatR 12.5.0 fork due
 
 ## Why use Flume?
 
-Flume 13.x moved to a commercial license, but Flume provides a modern, efficient alternative that:
+Flume is aimed at focusing on minimizing app startup costs and GC pressure while maintaining compatibility with MediatR 12. in memory constrained environments.
 
 - **Free MIT License**: No commercial licensing costs
 - **Optimized for Small-to-Mid Scale**: Perfect for applications with < 1000 requests/second
@@ -68,7 +65,7 @@ MediatR excels in:
 |-----------------|----------------|----------|
 | 100 | **Flume** | Internal APIs, admin dashboards |
 | 500 | **Flume** | Mobile backends, microservices |
-| 1000 | **Flume** | Web APIs, B2B integrations |
+| 1000 | **Either** | Web APIs, B2B integrations |
 | 5000 | **Either** | E-commerce, content APIs |
 | 10000+ | **MediatR** | High-traffic, enterprise apps |
 
