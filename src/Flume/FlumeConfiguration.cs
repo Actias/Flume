@@ -12,6 +12,169 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Flume;
 
 /// <summary>
+/// Performance optimization strategy for Flume caching and compilation
+/// </summary>
+public enum PerformanceStrategy
+{
+    /// <summary>
+    /// Optimized for MediatR compatibility - minimal caching, similar performance characteristics to MediatR
+    /// </summary>
+    MediatRCompatible,
+    
+    /// <summary>
+    /// Balanced approach - moderate caching with good performance and memory usage
+    /// </summary>
+    Balanced,
+    
+    /// <summary>
+    /// Maximum performance - aggressive caching, pre-compilation, and optimization
+    /// </summary>
+    MaximumPerformance
+}
+
+/// <summary>
+/// Fine-grained cache configuration options for customizing caching behavior
+/// </summary>
+public class CacheConfiguration
+{
+    /// <summary>
+    /// Maximum size for request handler cache. Default is 1000.
+    /// </summary>
+    public int RequestHandlerCacheSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Maximum size for notification handler cache. Default is 1000.
+    /// </summary>
+    public int NotificationHandlerCacheSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Maximum size for stream request handler cache. Default is 1000.
+    /// </summary>
+    public int StreamRequestHandlerCacheSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Maximum size for type information cache. Default is 1000.
+    /// </summary>
+    public int TypeInfoCacheSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Maximum size for service resolution cache. Default is 1000.
+    /// </summary>
+    public int ServiceResolutionCacheSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Maximum size for compiled pipeline cache. Default is 1000.
+    /// </summary>
+    public int CompiledPipelineCacheSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Enable cache warming during startup. Default is false.
+    /// </summary>
+    public bool EnableCacheWarming { get; set; }
+
+    /// <summary>
+    /// Cache eviction policy. Default is LRU (Least Recently Used).
+    /// </summary>
+    public CacheEvictionPolicy EvictionPolicy { get; set; } = CacheEvictionPolicy.LRU;
+
+    /// <summary>
+    /// Time-to-live for cached items in minutes. 0 means no expiration. Default is 0 (no expiration).
+    /// </summary>
+    public int CacheTtlMinutes { get; set; }
+
+    /// <summary>
+    /// Enable cache statistics collection. Default is false.
+    /// </summary>
+    public bool EnableCacheStatistics { get; set; }
+
+    /// <summary>
+    /// Create a MediatR-compatible cache configuration
+    /// </summary>
+    public static CacheConfiguration MediatRCompatible()
+    {
+        return new CacheConfiguration
+        {
+            RequestHandlerCacheSize = 100,
+            NotificationHandlerCacheSize = 100,
+            StreamRequestHandlerCacheSize = 100,
+            TypeInfoCacheSize = 100,
+            ServiceResolutionCacheSize = 100,
+            CompiledPipelineCacheSize = 100,
+            EnableCacheWarming = false,
+            EvictionPolicy = CacheEvictionPolicy.LRU,
+            CacheTtlMinutes = 0,
+            EnableCacheStatistics = false
+        };
+    }
+
+    /// <summary>
+    /// Create a balanced cache configuration (default)
+    /// </summary>
+    public static CacheConfiguration Balanced()
+    {
+        return new CacheConfiguration
+        {
+            RequestHandlerCacheSize = 1000,
+            NotificationHandlerCacheSize = 1000,
+            StreamRequestHandlerCacheSize = 1000,
+            TypeInfoCacheSize = 1000,
+            ServiceResolutionCacheSize = 1000,
+            CompiledPipelineCacheSize = 1000,
+            EnableCacheWarming = false,
+            EvictionPolicy = CacheEvictionPolicy.LRU,
+            CacheTtlMinutes = 0,
+            EnableCacheStatistics = false
+        };
+    }
+
+    /// <summary>
+    /// Create a maximum performance cache configuration
+    /// </summary>
+    public static CacheConfiguration MaximumPerformance()
+    {
+        return new CacheConfiguration
+        {
+            RequestHandlerCacheSize = 10000,
+            NotificationHandlerCacheSize = 10000,
+            StreamRequestHandlerCacheSize = 10000,
+            TypeInfoCacheSize = 10000,
+            ServiceResolutionCacheSize = 10000,
+            CompiledPipelineCacheSize = 10000,
+            EnableCacheWarming = true,
+            EvictionPolicy = CacheEvictionPolicy.LRU,
+            CacheTtlMinutes = 0,
+            EnableCacheStatistics = true
+        };
+    }
+}
+
+/// <summary>
+/// Cache eviction policy options
+/// </summary>
+public enum CacheEvictionPolicy
+{
+    /// <summary>
+    /// Least Recently Used - evicts the least recently accessed items first
+    /// </summary>
+    LRU,
+    
+    /// <summary>
+    /// Least Frequently Used - evicts the least frequently accessed items first
+    /// </summary>
+    LFU,
+    
+    /// <summary>
+    /// First In First Out - evicts the oldest items first
+    /// </summary>
+    FIFO,
+    
+    /// <summary>
+    /// Random eviction - evicts items randomly
+    /// </summary>
+    Random
+}
+
+/// <summary>
 /// 
 /// </summary>
 public enum RequestExceptionActionProcessorStrategy
@@ -138,6 +301,71 @@ public class FlumeConfiguration
     /// Maximum cache size for handler wrappers. Default is 1000.
     /// </summary>
     public int MaxCacheSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Performance optimization strategy for caching and compilation.
+    /// </summary>
+    public PerformanceStrategy PerformanceStrategy { get; set; } = PerformanceStrategy.Balanced;
+
+    /// <summary>
+    /// Custom cache configuration options for fine-grained control over caching behavior.
+    /// </summary>
+    public CacheConfiguration CacheConfiguration { get; set; } = new();
+
+    /// <summary>
+    /// Apply performance strategy settings to optimize caching and compilation behavior.
+    /// This method automatically configures EnableObjectPooling, EnablePipelineCompilation, 
+    /// EnableTypeCaching, and MaxCacheSize based on the selected strategy.
+    /// </summary>
+    /// <param name="strategy">The performance strategy to apply</param>
+    /// <returns>This configuration instance for method chaining</returns>
+    public FlumeConfiguration WithPerformanceStrategy(PerformanceStrategy strategy)
+    {
+        PerformanceStrategy = strategy;
+        
+        switch (strategy)
+        {
+            case PerformanceStrategy.MediatRCompatible:
+                // Minimal caching for MediatR compatibility
+                EnableObjectPooling = false;
+                EnablePipelineCompilation = false;
+                EnableTypeCaching = false;
+                MaxCacheSize = 100;
+                CacheConfiguration = CacheConfiguration.MediatRCompatible();
+                break;
+                
+            case PerformanceStrategy.Balanced:
+                // Balanced approach - current defaults
+                EnableObjectPooling = true;
+                EnablePipelineCompilation = true;
+                EnableTypeCaching = true;
+                MaxCacheSize = 1000;
+                CacheConfiguration = CacheConfiguration.Balanced();
+                break;
+                
+            case PerformanceStrategy.MaximumPerformance:
+                // Aggressive optimization
+                EnableObjectPooling = true;
+                EnablePipelineCompilation = true;
+                EnableTypeCaching = true;
+                MaxCacheSize = 10000;
+                CacheConfiguration = CacheConfiguration.MaximumPerformance();
+                break;
+        }
+        
+        return this;
+    }
+
+    /// <summary>
+    /// Configure custom caching options for fine-grained control.
+    /// </summary>
+    /// <param name="configureCache">Action to configure cache settings</param>
+    /// <returns>This configuration instance for method chaining</returns>
+    public FlumeConfiguration WithCustomCache(Action<CacheConfiguration> configureCache)
+    {
+        configureCache(CacheConfiguration);
+        return this;
+    }
 
     /// <summary>
     /// Register various handlers from assembly containing given type
