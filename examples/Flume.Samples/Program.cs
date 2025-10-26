@@ -9,9 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 // Create a simple example to demonstrate Flume
 var services = new ServiceCollection();
 
-// Register Flume
-// Use the assembly where your handlers are located
-services.AddFlume(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+// Register Flume with different performance strategies
+// Choose one of the following configurations:
+
+// Option 2: Balanced (moderate caching) - Default
+services.AddFlumeBalanced();
 
 var serviceProvider = services.BuildServiceProvider();
 var mediator = serviceProvider.GetRequiredService<IMediator>();
