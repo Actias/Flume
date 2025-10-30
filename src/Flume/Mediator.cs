@@ -12,20 +12,34 @@ namespace Flume;
 /// <summary>
 /// Default mediator implementation with optimized performance and simplified logic
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the Mediator class
-/// </remarks>
-/// <param name="serviceProvider">The service provider for resolving dependencies</param>
-/// <param name="publisher">The notification publisher</param>
-public class Mediator(IServiceProvider serviceProvider, INotificationPublisher publisher) : IMediator
+public class Mediator : IMediator
 {
-    private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-    private readonly INotificationPublisher _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+    private readonly IServiceProvider _serviceProvider;
+    private readonly INotificationPublisher _publisher;
     
     // Thread-safe caches for handler wrappers to avoid repeated reflection
-    private static readonly LockFreeCache<Type, HandlerWrapper> RequestHandlers = new();
-    private static readonly LockFreeCache<Type, NotificationHandlerWrapper> NotificationHandlers = new();
-    private static readonly LockFreeCache<Type, StreamRequestHandlerWrapper> StreamRequestHandlers = new();
+    // Cache sizes are configurable based on performance strategy
+    private readonly LockFreeCache<Type, HandlerWrapper> RequestHandlers;
+    private readonly LockFreeCache<Type, NotificationHandlerWrapper> NotificationHandlers;
+    private readonly LockFreeCache<Type, StreamRequestHandlerWrapper> StreamRequestHandlers;
+
+    /// <summary>
+    /// Initializes a new instance of the Mediator class
+    /// </summary>
+    /// <param name="serviceProvider">The service provider for resolving dependencies</param>
+    /// <param name="publisher">The notification publisher</param>
+    /// <param name="configuration">Optional configuration for performance tuning</param>
+    public Mediator(IServiceProvider serviceProvider, INotificationPublisher publisher, FlumeConfiguration? configuration = null)
+    {
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+        
+        // Initialize caches with configured sizes
+        var cacheConfig = configuration?.CacheConfiguration ?? new CacheConfiguration();
+        RequestHandlers = new LockFreeCache<Type, HandlerWrapper>(cacheConfig.RequestHandlerCacheSize);
+        NotificationHandlers = new LockFreeCache<Type, NotificationHandlerWrapper>(cacheConfig.NotificationHandlerCacheSize);
+        StreamRequestHandlers = new LockFreeCache<Type, StreamRequestHandlerWrapper>(cacheConfig.StreamRequestHandlerCacheSize);
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Mediator"/> class.
@@ -33,6 +47,14 @@ public class Mediator(IServiceProvider serviceProvider, INotificationPublisher p
     /// <param name="serviceProvider">Service provider</param>
     public Mediator(IServiceProvider serviceProvider) 
         : this(serviceProvider, new ForeachAwaitPublisher()) { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Mediator"/> class.
+    /// </summary>
+    /// <param name="serviceProvider">Service provider</param>
+    /// <param name="configuration">Configuration for performance tuning</param>
+    public Mediator(IServiceProvider serviceProvider, FlumeConfiguration configuration) 
+        : this(serviceProvider, new ForeachAwaitPublisher(), configuration) { }
 
     /// <summary>
     /// Sends a request and returns the response
@@ -159,7 +181,8 @@ public class Mediator(IServiceProvider serviceProvider, INotificationPublisher p
     // Factory methods for creating handler wrappers - optimized to reduce reflection overhead
     private static RequestHandlerWrapper<TResponse> CreateRequestHandlerWrapper<TResponse>(Type requestType)
     {
-        // Use TypeCache to get pre-compiled handler info (for future use)
+        // Use TypeCache to get pre-compiled handler info if enabled
+        // Note: We can't access instance configuration here, so we'll always use type caching
         _ = TypeCache.GetOrAddHandlerInfo(requestType);
         var wrapperType = typeof(RequestHandlerWrapperImpl<,>).MakeGenericType(requestType, typeof(TResponse));
 
