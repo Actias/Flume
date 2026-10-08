@@ -55,9 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/') && startsWith(github.ref_name, 'v') && (contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-rc'))
     permissions:
+      id-token: write
       contents: write
-      packages: write
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -74,9 +74,15 @@ jobs:
         
     - name: Pack for prerelease
       run: dotnet pack src/Flume/Flume.csproj --configuration Release --output ./nupkgs -p:Version=${{ env.FLUME_VERSION }}
-      
+
+    - name: NuGet login
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: Actias
+
     - name: Publish prerelease to NuGet
-      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       
     - name: Create GitHub Pre-release
       uses: softprops/action-gh-release@v1
@@ -93,9 +99,9 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/') && startsWith(github.ref_name, 'v') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-rc')
     permissions:
+      id-token: write
       contents: write
-      packages: write
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -112,9 +118,15 @@ jobs:
         
     - name: Pack for release
       run: dotnet pack src/Flume/Flume.csproj --configuration Release --output ./nupkgs -p:Version=${{ env.FLUME_VERSION }}
-      
+
+    - name: NuGet login
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: Actias
+
     - name: Publish to NuGet
-      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
