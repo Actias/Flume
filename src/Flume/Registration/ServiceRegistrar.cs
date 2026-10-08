@@ -20,7 +20,7 @@ public static class ServiceRegistrar
     private static int _maxGenericTypeParameters;
     private static int _maxTypesClosing;
     private static int _maxGenericTypeRegistrations;
-    private static int _registrationTimeout; 
+    private static int _registrationTimeout;
 
     /// <summary>
     /// Sets the limitations for generic request handler registration based on the provided <see cref="FlumeConfiguration"/>.
@@ -62,7 +62,7 @@ public static class ServiceRegistrar
     /// <param name="configuration">The Flume configuration containing registration options and limitations.</param>
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the registration to complete.</param>
     public static void AddFlumeClasses(IServiceCollection services, FlumeConfiguration configuration, CancellationToken cancellationToken = default)
-    {   
+    {
         var assembliesToScan = configuration.AssembliesToRegister.Distinct().ToArray();
 
         ConnectImplementationsToTypesClosing(typeof(IRequestHandler<,>), services, assembliesToScan, false, configuration, cancellationToken);
@@ -128,7 +128,7 @@ public static class ServiceRegistrar
             .Where(t => !t.ContainsGenericParameters || configuration.RegisterGenericHandlers)
             .Where(t => t.IsConcrete() && t.FindInterfacesThatClose(openRequestInterface).Any())
             .Where(configuration.TypeEvaluator)
-            .ToList();        
+            .ToList();
 
         foreach (var type in types)
         {
@@ -266,7 +266,7 @@ public static class ServiceRegistrar
         }
 
         var requestGenericTypeDefinition = requestType.GetGenericTypeDefinition();
-              
+
         var combinations = GenerateCombinations(requestType, typesThatCanCloseForEachParameter, 0, cancellationToken);
 
         return [.. combinations.Select(types => requestGenericTypeDefinition.MakeGenericType([.. types]))];
@@ -345,7 +345,7 @@ public static class ServiceRegistrar
     )
     {
         foreach (var concretion in concretions)
-        {   
+        {
             var concreteRequests = GetConcreteRequestTypes(openRequestInterface, concretion, assembliesToScan, cancellationToken);
 
             if (concreteRequests is null)
@@ -465,15 +465,17 @@ public static class ServiceRegistrar
 
         if (serviceConfiguration.RequestPreProcessorsToRegister.Count > 0)
         {
-            services.TryAddEnumerable(new ServiceDescriptor(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>), ServiceLifetime.Transient));
             services.TryAddEnumerable(serviceConfiguration.RequestPreProcessorsToRegister);
         }
 
         if (serviceConfiguration.RequestPostProcessorsToRegister.Count > 0)
         {
-            services.TryAddEnumerable(new ServiceDescriptor(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>), ServiceLifetime.Transient));
             services.TryAddEnumerable(serviceConfiguration.RequestPostProcessorsToRegister);
         }
+
+        // Processors run once, inside these behaviors. The request wrapper only invokes the chain.
+        RegisterBehaviorIfImplementationsExist(services, typeof(RequestPreProcessorBehavior<,>), typeof(IRequestPreProcessor<>));
+        RegisterBehaviorIfImplementationsExist(services, typeof(RequestPostProcessorBehavior<,>), typeof(IRequestPostProcessor<,>));
 
         foreach (var serviceDescriptor in serviceConfiguration.BehaviorsToRegister)
         {

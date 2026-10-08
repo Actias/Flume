@@ -6,122 +6,118 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Flume.Comparison.Benchmarks;
 
 /// <summary>
-/// Benchmark class for performance comparison between Flume and Flume
+/// MediatR 12.5.0 against Flume on the current TFM.
+/// Includes a reused mediator, a new mediator per iteration, and one real pass-through behavior.
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob]
+[ShortRunJob]
 public class MediatorBenchmarks
 {
+    private ServiceProvider _mediatRProvider = null!;
+    private ServiceProvider _flumeProvider = null!;
+    private ServiceProvider _mediatRPipelineProvider = null!;
+    private ServiceProvider _flumePipelineProvider = null!;
     private global::MediatR.IMediator _mediatR = null!;
     private IMediator _flume = null!;
+    private global::MediatR.IMediator _mediatRPipeline = null!;
+    private IMediator _flumePipeline = null!;
     private MediatRRequest _mediatRRequest = null!;
     private FlumeRequest _flumeRequest = null!;
 
     [GlobalSetup]
     public void Setup()
     {
-        // Setup MediatR
-        var mediatRServices = new ServiceCollection();
-        mediatRServices.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(MediatorBenchmarks).Assembly));
-        var mediatRProvider = mediatRServices.BuildServiceProvider();
-        _mediatR = mediatRProvider.GetRequiredService<global::MediatR.IMediator>();
+        _mediatRProvider = BuildMediatR(includeBehavior: false);
+        _flumeProvider = BuildFlume(includeBehavior: false);
+        _mediatRPipelineProvider = BuildMediatR(includeBehavior: true);
+        _flumePipelineProvider = BuildFlume(includeBehavior: true);
 
-        // Setup Flume
-        var flumeServices = new ServiceCollection();
-        flumeServices.AddFlume(cfg => cfg.RegisterServicesFromAssembly(typeof(MediatorBenchmarks).Assembly));
-        flumeServices.AddScoped<IRequestHandler<FlumeRequest, string>, FlumeHandler>();
-        var flumeProvider = flumeServices.BuildServiceProvider();
-        _flume = flumeProvider.GetRequiredService<IMediator>();
-
+        _mediatR = _mediatRProvider.GetRequiredService<global::MediatR.IMediator>();
+        _flume = _flumeProvider.GetRequiredService<IMediator>();
+        _mediatRPipeline = _mediatRPipelineProvider.GetRequiredService<global::MediatR.IMediator>();
+        _flumePipeline = _flumePipelineProvider.GetRequiredService<IMediator>();
         _mediatRRequest = new("test message");
         _flumeRequest = new("test message");
     }
 
-    [Benchmark]
-    public async Task<string> MediatRSend()
+    [GlobalCleanup]
+    public void Cleanup()
     {
-        return await _mediatR.Send(_mediatRRequest);
+        _mediatRProvider.Dispose();
+        _flumeProvider.Dispose();
+        _mediatRPipelineProvider.Dispose();
+        _flumePipelineProvider.Dispose();
     }
 
     [Benchmark]
-    public async Task<string> FlumeSend()
-    {
-        return await _flume.Send(_flumeRequest);
-    }
+    public Task<string> MediatRSend() => _mediatR.Send(_mediatRRequest);
 
     [Benchmark]
-    public async Task<string> MediatRSendWithPipeline()
-    {
-        // Test with pipeline behaviors (if any are registered)
-        return await _mediatR.Send(_mediatRRequest);
-    }
+    public Task<string> FlumeSend() => _flume.Send(_flumeRequest);
 
     [Benchmark]
-    public async Task<string> FlumeSendWithPipeline()
-    {
-        // Test with pipeline behaviors (if any are registered)
-        return await _flume.Send(_flumeRequest);
-    }
+    public Task<string> MediatRSendFreshMediator() =>
+        _mediatRProvider.GetRequiredService<global::MediatR.IMediator>().Send(_mediatRRequest);
 
     [Benchmark]
-    public async Task<string> MediatRSendConcurrent()
+    public Task<string> FlumeSendFreshMediator() =>
+        _flumeProvider.GetRequiredService<IMediator>().Send(_flumeRequest);
+
+    [Benchmark]
+    public Task<string> MediatRSendWithBehavior() => _mediatRPipeline.Send(_mediatRRequest);
+
+    [Benchmark]
+    public Task<string> FlumeSendWithBehavior() => _flumePipeline.Send(_flumeRequest);
+
+    private static ServiceProvider BuildMediatR(bool includeBehavior)
     {
-        // Test concurrent access
-        var tasks = new Task<string>[10];
-        for (int i = 0; i < 10; i++)
+        var services = new ServiceCollection();
+        services.AddMediatR(cfg =>
         {
-            tasks[i] = _mediatR.Send(_mediatRRequest);
-        }
-        var results = await Task.WhenAll(tasks);
-        return results[0]; // Return first result for consistency
+            cfg.TypeEvaluator = type => type.DeclaringType != typeof(MediatorBenchmarks);
+            cfg.RegisterServicesFromAssembly(typeof(MediatorBenchmarks).Assembly);
+            if (includeBehavior)
+            {
+                cfg.AddOpenBehavior(typeof(MediatRPassThroughBehavior<,>));
+            }
+        });
+
+        return services.BuildServiceProvider();
     }
 
-    [Benchmark]
-    public async Task<string> FlumeSendConcurrent()
+    private static ServiceProvider BuildFlume(bool includeBehavior)
     {
-        // Test concurrent access
-        var tasks = new Task<string>[10];
-        for (int i = 0; i < 10; i++)
+        var services = new ServiceCollection();
+        services.AddFlume(cfg =>
         {
-            tasks[i] = _flume.Send(_flumeRequest);
-        }
-        var results = await Task.WhenAll(tasks);
-        return results[0]; // Return first result for consistency
+            cfg.TypeEvaluator = type => type.DeclaringType != typeof(MediatorBenchmarks);
+            cfg.RegisterServicesFromAssembly(typeof(MediatorBenchmarks).Assembly);
+            if (includeBehavior)
+            {
+                cfg.AddOpenBehavior(typeof(FlumePassThroughBehavior<,>));
+            }
+        });
+
+        return services.BuildServiceProvider();
     }
 
-    [Benchmark]
-    public async Task<string> MediatRSendMemoryPressure()
+    public sealed class MediatRPassThroughBehavior<TRequest, TResponse> : global::MediatR.IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull
     {
-        // Test under memory pressure by creating temporary objects
-        var tempObjects = new object[1000];
-        for (int i = 0; i < 1000; i++)
-        {
-            tempObjects[i] = new { Id = i, Data = new string('x', 100) };
-        }
-        
-        var result = await _mediatR.Send(_mediatRRequest);
-        
-        // Simulate memory pressure without explicit GC.Collect
-        _ = tempObjects.Length; // Use the variable to avoid unused warning
-        
-        return result;
+        public Task<TResponse> Handle(
+            TRequest request,
+            global::MediatR.RequestHandlerDelegate<TResponse> next,
+            CancellationToken cancellationToken) =>
+            next(cancellationToken);
     }
 
-    [Benchmark]
-    public async Task<string> FlumeSendMemoryPressure()
+    public sealed class FlumePassThroughBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull
     {
-        // Test under memory pressure by creating temporary objects
-        var tempObjects = new object[1000];
-        for (int i = 0; i < 1000; i++)
-        {
-            tempObjects[i] = new { Id = i, Data = new string('x', 100) };
-        }
-        
-        var result = await _flume.Send(_flumeRequest);
-        
-        // Simulate memory pressure without explicit GC.Collect
-        _ = tempObjects.Length; // Use the variable to avoid unused warning
-        
-        return result;
+        public Task<TResponse> Handle(
+            TRequest request,
+            RequestHandlerDelegate<TResponse> next,
+            CancellationToken cancellationToken) =>
+            next(cancellationToken);
     }
 }

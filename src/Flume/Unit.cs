@@ -20,20 +20,20 @@ public readonly struct Unit : IEquatable<Unit>
     /// <param name="other">The other Unit to compare</param>
     /// <returns>Always true since all Unit values are equal</returns>
     public bool Equals(Unit other) => true;
-    
+
     /// <summary>
     /// Determines if this Unit equals another object
     /// </summary>
     /// <param name="obj">The object to compare</param>
     /// <returns>True if the object is a Unit, false otherwise</returns>
     public override bool Equals(object? obj) => obj is Unit;
-    
+
     /// <summary>
     /// Gets the hash code for Unit
     /// </summary>
     /// <returns>Always 0 since all Unit values are equal</returns>
     public override int GetHashCode() => 0;
-    
+
     /// <summary>
     /// Gets the string representation of Unit
     /// </summary>
@@ -47,7 +47,7 @@ public readonly struct Unit : IEquatable<Unit>
     /// <param name="right">Right operand</param>
     /// <returns>Always true since all Unit values are equal</returns>
     public static bool operator ==(Unit left, Unit right) => true;
-    
+
     /// <summary>
     /// Inequality operator for Unit values
     /// </summary>

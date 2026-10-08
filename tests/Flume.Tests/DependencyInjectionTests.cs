@@ -45,7 +45,7 @@ public sealed class DependencyInjectionTests
 
         // Act
         var result = await mediator.Send(new SyncServiceRequest(value));
-        
+
         // Assert
         Assert.Equal(value, result);
     }

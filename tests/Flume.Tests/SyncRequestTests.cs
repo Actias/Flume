@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using Flume.Tests.Requests;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +23,7 @@ public sealed class SyncRequestTests
 
         // Act
         var result = await mediator.Send(new SyncRequest(value));
-        
+
         // Assert
         Assert.Equal(value, result);
     }

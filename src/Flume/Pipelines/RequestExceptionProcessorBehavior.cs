@@ -43,10 +43,10 @@ public class RequestExceptionProcessorBehavior<TRequest, TResponse>(IServiceProv
             {
                 try
                 {
-                    await ((Task) (handlerForException.MethodInfo.Invoke(handlerForException.Handler, [
-                                       request, 
-                                       exception, 
-                                       state, 
+                    await ((Task)(handlerForException.MethodInfo.Invoke(handlerForException.Handler, [
+                                       request,
+                                       exception,
+                                       state,
                                        cancellationToken
                                    ])
                                    ?? throw new InvalidOperationException("Did not return a Task from the exception handler."))).ConfigureAwait(false);
@@ -89,7 +89,7 @@ public class RequestExceptionProcessorBehavior<TRequest, TResponse>(IServiceProv
         var exceptionHandlerInterfaceType = typeof(IRequestExceptionHandler<,,>).MakeGenericType(typeof(TRequest), typeof(TResponse), exceptionType);
         var enumerableExceptionHandlerInterfaceType = typeof(IEnumerable<>).MakeGenericType(exceptionHandlerInterfaceType);
 
-        var exceptionHandlers = (IEnumerable<object>) serviceProvider.GetRequiredService(enumerableExceptionHandlerInterfaceType);
+        var exceptionHandlers = (IEnumerable<object>)serviceProvider.GetRequiredService(enumerableExceptionHandlerInterfaceType);
 
         return HandlersOrderer.Prioritize(exceptionHandlers.ToList(), request)
             .Select(handler => (exceptionType, action: handler));
@@ -98,7 +98,7 @@ public class RequestExceptionProcessorBehavior<TRequest, TResponse>(IServiceProv
     private static MethodInfo GetMethodInfoForHandler(Type exceptionType)
     {
         var exceptionHandlerInterfaceType = typeof(IRequestExceptionHandler<,,>).MakeGenericType(typeof(TRequest), typeof(TResponse), exceptionType);
-        
+
         var handleMethodInfo = exceptionHandlerInterfaceType.GetMethod(nameof(IRequestExceptionHandler<TRequest, TResponse, Exception>.Handle))
                            ?? throw new InvalidOperationException($"Could not find method {nameof(IRequestExceptionHandler<TRequest, TResponse, Exception>.Handle)} on type {exceptionHandlerInterfaceType}");
 

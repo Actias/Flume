@@ -6,4 +6,4 @@ namespace Flume;
 /// Marker interface to represent a stream request
 /// </summary>
 /// <typeparam name="TResponse">Response type</typeparam>
-public interface IStreamRequest<out TResponse> : IRequest { }
+public interface IStreamRequest<out TResponse> : IBaseRequest;

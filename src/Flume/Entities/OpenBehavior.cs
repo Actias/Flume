@@ -42,7 +42,7 @@ public class OpenBehavior
     {
 
         ArgumentNullException.ThrowIfNull(openBehaviorType);
-        
+
         var isPipelineBehavior = openBehaviorType
             .GetInterfaces()
             .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IPipelineBehavior<,>));

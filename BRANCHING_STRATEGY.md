@@ -13,41 +13,39 @@
 - **`bugfix/bug-description`** - Bug fixes (branch from `dev`)
 - **`hotfix/issue-description`** - Critical fixes for production (branch from `main`)
 
+## Package Version
+
+The package version is a UTC calendar stamp, `yyyy.M.d.Hmm`:
+
+- Year, month, and day come from the clock.
+- The fourth component is `hour * 100 + minute` (00:00 is `0`, 09:05 is `905`, 23:59 is `2359`).
+- NuGet drops leading zeros. `2026.10.08.0905` is stored as `2026.10.8.905`. Ordering still follows the clock.
+- The year is not a SemVer major. Breaking changes are called out in the release notes.
+- Two packs produced in the same UTC minute collide. Release one package per minute.
+
+CI sets `Version` once per run from the **committer timestamp of HEAD** (`eng/package-version.sh`). A rebuild of that commit produces the same package. Local `dotnet pack` without `Version` stamps the current UTC time instead.
+
+This replaces MinVer and the `v8.x` tag scheme. A git tag can still trigger the publish jobs, but the tag name is not the package version.
+
+Target frameworks are `net10.0` and `net11.0`, listed in `Directory.Build.props` as `FlumeTargetFrameworks`. They are not encoded in the version number.
+
 ## Release Process
 
-### Stable Releases (v8.1.0, v8.2.0, etc.)
+### Building a release
 
 1. Ensure `dev` is stable and tested
 2. Merge `dev` → `main`
-3. Create and push tag: `git tag -a v8.1.0 -m "Release version 8.1.0 - .NET 8.0 compatible"`
-4. Push tag: `git push origin v8.1.0`
-5. GitHub Actions automatically:
-   - Builds and tests
-   - Publishes to NuGet
-   - Creates GitHub Release
+3. The package version is the UTC committer time of the commit that is packed
+4. GitHub Actions, for that commit:
+   - Builds and tests `net10.0` and `net11.0`
+   - Sets `Version` from `eng/package-version.sh`
+   - Packs the nupkg
 
-### Pre-releases (Beta, Alpha, RC)
+Publishing to NuGet stays on the existing tag-triggered jobs. Do not publish a package that targets `net11.0` until you mean to: as of October 8, 2026, `net11.0` is compiled with SDK `11.0.100-rc.1.26425.128` (GA is November 10, 2026).
 
-1. Work on `dev` branch
-2. Create pre-release tag: `git tag -a v8.1.1-beta.1 -m "Beta 1 for 8.1.1"`
-3. Push tag: `git push origin v8.1.1-beta.1`
-4. GitHub Actions automatically:
-   - Builds and tests
-   - Publishes pre-release to NuGet
-   - Creates GitHub Pre-release
+### Pre-releases
 
-### Version Naming Convention
-
-- **Stable**: `v8.1.0`, `v8.2.0` (aligned with .NET 8.0)
-- **Beta**: `v8.1.1-beta.1`, `v8.1.1-beta.2`
-- **Alpha**: `v8.1.1-alpha.1`
-- **Release Candidate**: `v8.1.1-rc.1`
-
-**Versioning Strategy:**
-
-- **Major**: Aligns with .NET version (v8.x.x for .NET 8.0)
-- **Minor**: Release within major version (v8.1.x)
-- **Patch**: Hotfixes and bug fixes (v8.1.1)
+Pre-release tags (`-alpha`, `-beta`, `-rc`) still select the prerelease publish job. The nupkg version remains the calendar stamp, not the tag.
 
 ## Workflow
 
@@ -58,19 +56,12 @@
 3. Create PR to `dev`
 4. Merge after review and CI passes
 
-### Pre-release Testing
-
-1. Merge features to `dev`
-2. Test thoroughly
-3. Create beta/alpha tag
-4. Deploy to NuGet for testing
-
 ### Production Release
 
 1. Merge `dev` → `main`
-2. Create release tag
-3. Deploy to NuGet
-4. Create GitHub Release
+2. Let CI pack with the commit stamp
+3. Tag only when you want the publish job to run
+4. Put breaking changes in the GitHub release notes
 
 ## Commands Reference
 
@@ -85,24 +76,16 @@ git push origin feature/new-feature
 # Create PR to dev
 ```
 
-### Creating a pre-release
+### Seeing the version CI will use
 
 ```bash
-git checkout dev
-git pull origin dev
-git tag -a v8.1.1-beta.1 -m "Beta 1 for 8.1.1"
-git push origin v8.1.1-beta.1
+bash eng/package-version.sh
 ```
 
-### Creating a stable release
+### Packing locally with an explicit stamp
 
 ```bash
-git checkout main
-git pull origin main
-git merge dev
-git tag -a v8.1.0 -m "Release version 8.1.0"
-git push origin main
-git push origin v8.1.0
+dotnet pack src/Flume/Flume.csproj -c Release -p:Version="$(bash eng/package-version.sh)"
 ```
 
 ### Hotfix for production
@@ -115,9 +98,7 @@ git checkout -b hotfix/critical-fix
 git commit -m "Fix critical issue"
 git checkout main
 git merge hotfix/critical-fix
-git tag -a v8.1.1 -m "Hotfix release 8.1.1"
 git push origin main
-git push origin v8.1.1
 git branch -d hotfix/critical-fix
 ```
 
@@ -125,20 +106,22 @@ git branch -d hotfix/critical-fix
 
 ### Triggers
 
-- **Push to `main`**: Build, test, publish to NuGet, create GitHub Release
-- **Push to `dev`**: Build, test, publish pre-release to NuGet
-- **Push tags**: Build, test, publish to NuGet
-- **Pull Requests**: Build, test, run code analysis
+- **Push to `main` or `dev`**: Build, test, pack. The package version is the commit stamp.
+- **Push tags**: Build, test, and the publish jobs may push to NuGet.
+- **Pull Requests**: Build, test, run code analysis.
+
+### SDK
+
+`global.json` pins SDK `11.0.100-rc.1.26425.128` (`allowPrerelease`). Workflows also install SDK `10.0.401` so `net10.0` can compile and the tests can run. The .NET 10 SDK alone cannot compile `net11.0`.
 
 ### Artifacts
 
 - NuGet packages are uploaded as artifacts
 - Retention: 30 days
-- Automatic publishing to NuGet.org
 
 ## Security and Quality
 
 - All builds treat warnings as errors
 - Code analysis runs on all PRs
-- Tests must pass before any deployment
+- Tests must pass on `net10.0` and `net11.0` before any deployment
 - Manual approval required for production releases (can be configured)

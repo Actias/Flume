@@ -6,7 +6,11 @@
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <LangVersion>12.0</LangVersion>
-    
+    <FlumeTargetFrameworks>net10.0;net11.0</FlumeTargetFrameworks>
+    <TargetFrameworks>$(FlumeTargetFrameworks)</TargetFrameworks>
+    <!-- The net11.0 compiler is still a release candidate. The message is a warning, and warnings are errors. -->
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+
     <!-- Disable only the most problematic rules that can't be easily fixed -->
     <NoWarn>$(NoWarn);CA1040;S1694</NoWarn>
   </PropertyGroup>

@@ -12,10 +12,10 @@ Flume is partially forked from MediatR 12.x, however, it has been partially rewr
 
 ## Features
 
-- **Drop-in Replacement**: Compatible with Flume 12.x APIs
-- **Performance Optimized**: Reduced reflection usage and improved caching
+- **Drop-in Replacement**: Compatible with MediatR 12.x APIs (`MediatR` becomes `Flume`, `AddMediatR` becomes `AddFlume`)
+- **Performance Optimized**: Static wrapper cache per request type. Handlers and behaviors are resolved per call
 - **Simplified Architecture**: Cleaner, more maintainable codebase
-- **Modern .NET**: Targets .NET 8.0+ with nullable reference types. No .NET Framework here. Versions will be pinned to .NET LTS
+- **Modern .NET**: Multi-targets `net10.0` (LTS) and `net11.0`. No .NET Framework
 - **MIT License**: Open source and free to use
 
 ## Why use Flume?
@@ -24,9 +24,9 @@ Flume is aimed at focusing on minimizing app startup costs and GC pressure while
 
 - **Free MIT License**: No commercial licensing costs
 - **Optimized for Small-to-Mid Scale**: Perfect for applications with < 1000 requests/second
-- **Better Memory Efficiency**: Object pooling and caching reduce GC pressure over time
+- **Less per-request work**: The pipeline wrapper is cached per closed request type and does not retain scoped handlers
 - **Faster Startup Performance**: Optimized for cold starts and short-lived applications
-- **Modern .NET 8.0+**: Takes advantage of latest .NET performance improvements
+- **.NET 10 LTS and .NET 11**: `net10.0` is the LTS target. `net11.0` is included in the same package
 - **API Compatibility**: Drop-in replacement for MediatR 12.x
 
 ### Perfect For
@@ -46,7 +46,7 @@ MediatR is a wonderful foundational library used in projects across the globe. I
 MediatR excels in:
 
 - **High-Throughput Applications**: Superior performance at > 5000 requests/second
-- **Maximum Performance**: ~4.6x faster per request than Flume at higher request rates
+- **Maximum Performance**: Tuned for high request rates. Measure your own workload; see the comparison project
 - **Battle-Tested**: Mature, production-ready with extensive community support
 - **Concurrent Performance**: Better handling of high-concurrency scenarios
 - **Long-Running Services**: Optimized for sustained performance over time
@@ -84,10 +84,10 @@ dotnet add package Flume
 ### 1. Register Services
 
 ```csharp
-using Flume.MicrosoftExtensionsDI;
+using Flume;
 
 var services = new ServiceCollection();
-services.AddFlume();
+services.AddFlume(cfg => cfg.RegisterServicesFromAssemblyContaining<PingHandler>());
 ```
 
 ### 2. Define Requests and Handlers
@@ -184,148 +184,32 @@ await foreach (var number in mediator.CreateStream(new CountToTen()))
 
 While the initial version of Flume is a drop-in replacement for MediatR 12.x, it may diverge over time with later versions and should not be expected to keep up with the changes in MediatR 13.x+. Flume after this point is it's own project. While matching features may be added in the future, the way they are implemented could differ wildly from Flume.
 
-Flume is specifically designed for .NET 8.0+ and drops support .Net Standard 2.0 which means no .NET 6.0 and .Net Framework support. This comes with trade-offs. Going forward, Flume will target the latest LTS branch of .NET. At least for the time being. This means that support will always be rolling forward.
+Flume targets `net10.0` and `net11.0`. .NET 10 is the LTS line. .NET 8, .NET 9, .NET Standard, and .NET Framework are not targets. Support rolls forward with the LTS line.
 
 If you need support for older versions of .NET or don't like that, please use MediatR and support the project in any way you can. Jimmy puts a lot of work into making sure MediatR is as compatible as possible.
 
-## Roadmap
+## What the mediator does
 
-This section outlines planned improvements and recommendations for Flume to enhance its performance, scalability, and feature parity with Flume.
+- Caches one stateless wrapper per closed request, notification, and stream type.
+- Resolves handlers and behaviors from the call's `IServiceProvider`. Scoped services are not cached.
+- Runs processors and exception handlers once, as pipeline behaviors.
+- Keeps `OrderAttribute` for notification handlers and caches the attribute lookup per handler type.
+- Leaves Redis and result caching in `Flume.Behaviors`.
 
-### Performance Optimizations
+Object pooling, the old pipeline compiler, the lock-free cache, and the performance-strategy flags are not part of this library. Multi-level caches, request batching, background JIT, and a distributed cache inside the mediator are not planned there either.
 
-#### ✅ Phase 1: High Impact, Low Complexity (COMPLETED)
+## Performance
 
-- **✅ Object Pooling**: Implemented `ObjectPool<T>` for handler wrappers and frequently created objects
-- **✅ Type Caching**: Implemented `TypeCache` with aggressive caching of resolved types and handler information
-- **✅ Lock-Free Caching**: Implemented `LockFreeCache<TKey, TValue>` replacing `ConcurrentDictionary` for better performance
-- **✅ Pipeline Compilation**: Implemented `PipelineCompiler` for pre-compiling pipeline behaviors
-- **✅ Service Resolution Optimization**: Added pre-compiled delegates for service resolution
-- **✅ Strict Mode**: Re-enabled strict mode for better performance optimizations
-- **✅ Parallel Registration**: Implemented parallel type discovery and registration in `ServiceCollectionExtensions`
+`examples/Flume.Comparison` on `net10.0` (.NET 10.0.12, BenchmarkDotNet 0.13.12 ShortRun: 1 launch, 3 warmups, 3 iterations) against MediatR 12.5.0. The fresh-mediator methods resolve a new mediator every iteration. The behavior methods register one pass-through `IPipelineBehavior`. The error column is wide because the job is short; it is not a ranking.
 
-#### Phase 2: Medium Impact, Medium Complexity
-
-- **Advanced Caching Strategies**: Multi-level caching (L1, L2, L3) with LRU and TTL policies
-- **Pipeline Optimization**: Pre-compile pipeline behaviors and inline simple operations
-- **Concurrency Improvements**: Implement lock-free data structures and reader-writer locks
-- **Request Batching**: Batch multiple requests where possible for improved throughput
-
-#### Phase 3: High Impact, High Complexity
-
-- **JIT Optimization**: Implement runtime compilation strategies for better cold-start performance
-- **Memory Management**: Advanced object lifecycle management and GC pressure reduction
-- **Production Hardening**: Extreme load testing and edge case handling
-- **Distributed Caching**: Support for Redis and other distributed cache providers
-
-### Scalability Improvements
-
-#### Memory Efficiency
-
-- **Reduce Boxing/Unboxing**: Use generic constraints and value types where appropriate
-- **Smart Allocation**: Implement ArrayPool and other allocation optimization strategies
-- **GC Pressure Reduction**: Minimize object creation in hot paths
-- **Memory Profiling**: Continuous monitoring of memory usage patterns
-
-#### Throughput Optimization
-
-- **Handler Resolution**: Optimize handler lookup and instantiation
-- **Pipeline Execution**: Streamline pipeline behavior execution
-- **Async Operations**: Improve async/await patterns and reduce overhead
-- **Concurrent Access**: Better handling of high-concurrency scenarios
-
-#### Startup Performance
-
-- **Lazy Initialization**: Defer non-critical operations until first use
-- **Parallel Processing**: Concurrent handler registration and type resolution
-- **Background Compilation**: Compile optimizations in background threads
-- **Conditional Registration**: Skip unused features during startup
-
-### Feature Enhancements
-
-#### Advanced Scenarios
-
-- **Pipeline Behaviors**: Enhanced pipeline behavior support with better performance
-- **Notifications**: Optimized notification publishing and handling
-- **Stream Requests**: Improved async stream request handling
-- **Exception Handling**: Better exception handling with minimal performance impact
-
-#### Developer Experience
-
-- **Configuration Options**: More granular configuration for performance tuning
-- **Diagnostics**: Built-in performance monitoring and diagnostics
-- **Profiling Support**: Integration with profiling tools and APM solutions
-- **Documentation**: Comprehensive performance tuning guides
-
-### Testing & Validation
-
-#### ✅ Benchmark Improvements (COMPLETED)
-
-- **✅ Real-World Scenarios**: Implemented comprehensive benchmarking with actual handler implementations
-- **✅ Mixed Request Types**: Added benchmarks for different request/response patterns
-- **✅ Concurrent Testing**: High-concurrency performance validation (10 concurrent requests)
-- **✅ Memory Pressure Testing**: Performance testing under memory-constrained conditions
-- **✅ Memory Allocation Analysis**: Detailed memory allocation benchmarking with `MemoryDiagnoser`
-- **✅ Pipeline Testing**: Benchmarks for pipeline behavior performance
-- **✅ Release Build Testing**: Proper performance testing in Release configuration
-
-#### Production Readiness
-
-- **Load Testing**: Extreme throughput scenarios (100K+ requests/second)
-- **Memory Profiling**: Detailed memory allocation analysis
-- **GC Analysis**: Garbage collection pressure and optimization
-- **Edge Case Handling**: Error scenarios and exception performance
-
-### Implementation Priorities
-
-#### ✅ Immediate (COMPLETED)
-
-1. ✅ Object pooling for handler wrappers (`ObjectPool<T>`)
-2. ✅ Aggressive type caching (`TypeCache`)
-3. ✅ Basic memory allocation optimization (`LockFreeCache`)
-4. ✅ Pipeline compilation (`PipelineCompiler`)
-5. ✅ Service resolution optimization
-6. ✅ Strict mode re-enabled
-7. ✅ Parallel registration implementation
-
-#### Short Term (3-6 months)
-
-1. **Advanced Caching Strategies**: Multi-level caching (L1, L2, L3) with LRU and TTL policies
-2. **Enhanced Pipeline Optimization**: Further pre-compilation and inlining optimizations
-3. **Concurrency Improvements**: Lock-free data structures and reader-writer locks
-4. **Memory Allocation Optimization**: `ArrayPool<T>` integration and allocation reduction
-5. **Compiled Expressions**: Replace remaining reflection with compiled expressions
-
-#### Long Term (6-12 months)
-
-1. **JIT Optimization Strategies**: Runtime compilation for better cold-start performance
-2. **Production Hardening**: Extreme load testing and edge case handling
-3. **Advanced Memory Management**: Object lifecycle management and GC pressure reduction
-4. **Distributed Caching**: Support for Redis and other distributed cache providers
-5. **Performance Monitoring**: Built-in diagnostics and profiling support
-
-### Success Metrics
-
-#### ✅ Performance Targets (ACHIEVED)
-
-- **✅ Memory Usage**: Implemented object pooling and caching to reduce allocations
-- **✅ Startup Time**: Optimized with parallel registration and strict mode
-- **✅ Caching Performance**: Implemented lock-free caching for better throughput
-- **✅ Pipeline Optimization**: Pre-compiled pipeline behaviors for faster execution
-
-#### Current Performance Characteristics
-
-- **Single Request**: 387 ns per request (vs MediatR's 83 ns)
-- **Memory Allocation**: 528 B per request (vs MediatR's 472 B)
-- **Concurrent Performance**: 3.88 μs for 10 concurrent requests
-- **Memory Pressure**: Better GC patterns with object pooling
-
-#### Scalability Goals
-
-- **✅ Small-to-Mid Scale**: Optimized for < 1000 requests/second
-- **✅ Memory Efficiency**: Object pooling reduces GC pressure over time
-- **✅ Startup Performance**: Faster cold starts for serverless scenarios
-- **✅ Production Ready**: Comprehensive benchmarking and testing implemented
+| Method | Mean | Error | StdDev | Allocated |
+| --- | ---: | ---: | ---: | ---: |
+| MediatRSend | 104.99 ns | 91.11 ns | 4.99 ns | 288 B |
+| FlumeSend | 98.38 ns | 123.71 ns | 6.78 ns | 272 B |
+| MediatRSendFreshMediator | 124.57 ns | 160.15 ns | 8.78 ns | 320 B |
+| FlumeSendFreshMediator | 108.63 ns | 115.25 ns | 6.32 ns | 304 B |
+| MediatRSendWithBehavior | 187.43 ns | 48.77 ns | 2.67 ns | 528 B |
+| FlumeSendWithBehavior | 218.47 ns | 106.89 ns | 5.86 ns | 512 B |
 
 ## Migration from MediatR
 
@@ -334,7 +218,8 @@ To migrate from MediatR to Flume:
 1. Replace `MediatR` package with `Flume`
 2. Update using statements from `MediatR` to `Flume`
 3. Replace `services.AddMediatR()` with `services.AddFlume()`
-4. Your existing handlers and requests should work without changes
+4. Handlers that implement `IRequestHandler<TRequest>` (no response) keep compiling. `IRequest` extends `IRequest<Unit>`
+5. `IStreamRequest<T>` extends `IBaseRequest` only. `StreamHandlerDelegate` takes a `CancellationToken`
 
 ## API Compatibility
 
