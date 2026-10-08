@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using Flume;
-using Flume.Samples;
-using Flume.NotificationPublishers;
+﻿using Flume.Samples;
 using Microsoft.Extensions.DependencyInjection;
 
 #pragma warning disable CA1303 // Localization not needed for console output
@@ -9,11 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 // Create a simple example to demonstrate Flume
 var services = new ServiceCollection();
 
-// Register Flume with different performance strategies
-// Choose one of the following configurations:
-
-// Option 2: Balanced (moderate caching) - Default
-services.AddFlumeBalanced();
+services.AddFlume(cfg => cfg.RegisterServicesFromAssemblyContaining<Ping>());
 
 var serviceProvider = services.BuildServiceProvider();
 var mediator = serviceProvider.GetRequiredService<IMediator>();

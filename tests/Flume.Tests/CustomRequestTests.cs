@@ -24,7 +24,7 @@ public sealed class CustomRequestTests
 
         // Act
         var result = await mediator.Send(new CustomRequest(value1, value2));
-        
+
         // Assert
         Assert.Equal(value1 + value2, result.Value);
     }

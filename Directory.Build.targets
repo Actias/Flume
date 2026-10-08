@@ -1,0 +1,13 @@
+<Project>
+  <!--
+    Package version is yyyy.M.d.Hmm in UTC (hour * 100 + minute). NuGet drops leading zeros.
+    CI passes -p:Version so a rebuild of the same commit keeps one stamp. A global Version wins over this fallback.
+  -->
+  <PropertyGroup Condition="'$(Version)' == '' or '$(Version)' == '1.0.0'">
+    <_FlumeStampYear>$([System.DateTime]::UtcNow.Year)</_FlumeStampYear>
+    <_FlumeStampMonth>$([System.DateTime]::UtcNow.Month)</_FlumeStampMonth>
+    <_FlumeStampDay>$([System.DateTime]::UtcNow.Day)</_FlumeStampDay>
+    <_FlumeStampTime>$([MSBuild]::Add($([MSBuild]::Multiply($([System.DateTime]::UtcNow.Hour), 100)), $([System.DateTime]::UtcNow.Minute)))</_FlumeStampTime>
+    <Version>$(_FlumeStampYear).$(_FlumeStampMonth).$(_FlumeStampDay).$(_FlumeStampTime)</Version>
+  </PropertyGroup>
+</Project>

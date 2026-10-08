@@ -21,11 +21,12 @@ public interface IRequestHandler<in TRequest, TResponse>
 }
 
 /// <summary>
-/// Defines a handler for a request with no response
+/// Defines a handler for a request with no response.
+/// The Unit adapter is explicit so a handler can implement <c>Task Handle</c> without also writing the Unit method.
 /// </summary>
 /// <typeparam name="TRequest">The type of request being handled</typeparam>
-public interface IRequestHandler<in TRequest>
-    where TRequest : IRequest
+public interface IRequestHandler<in TRequest> : IRequestHandler<TRequest, Unit>
+    where TRequest : IRequest<Unit>
 {
     /// <summary>
     /// Handles a request
@@ -33,5 +34,11 @@ public interface IRequestHandler<in TRequest>
     /// <param name="request">The request</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the handle operation</returns>
-    Task Handle(TRequest request, CancellationToken cancellationToken = default);
+    new Task Handle(TRequest request, CancellationToken cancellationToken = default);
+
+    async Task<Unit> IRequestHandler<TRequest, Unit>.Handle(TRequest request, CancellationToken cancellationToken)
+    {
+        await Handle(request, cancellationToken).ConfigureAwait(false);
+        return Unit.Value;
+    }
 }

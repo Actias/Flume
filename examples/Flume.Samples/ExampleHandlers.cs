@@ -21,7 +21,7 @@ public class PongHandler : IRequestHandler<Pong, Unit>
     public Task<Unit> Handle(Pong request, CancellationToken cancellationToken = default)
     {
         Console.WriteLine("Pong handled!");
-        
+
         return Task.FromResult(Unit.Value);
     }
 }

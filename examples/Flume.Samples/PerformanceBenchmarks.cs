@@ -15,30 +15,18 @@ public class PerformanceBenchmarks
     public PerformanceBenchmarks()
     {
         var services = new ServiceCollection();
-        
-        // Configure Flume with optimizations enabled
-        services.AddFlume(cfg => 
-        {
-            cfg.EnableObjectPooling = true;
-            cfg.EnablePipelineCompilation = true;
-            cfg.EnableTypeCaching = true;
-            cfg.MaxCacheSize = 1000;
-        });
-        
-        // Register sample handlers
-        services.AddScoped<IRequestHandler<TestRequest, string>, TestRequestHandler>();
-        services.AddScoped<IRequestHandler<TestRequestVoid>, TestRequestVoidHandler>();
-        services.AddScoped<INotificationHandler<TestNotification>, TestNotificationHandler>();
-        
+
+        services.AddFlume(cfg => cfg.RegisterServicesFromAssemblyContaining<TestRequest>());
+
         // Register pipeline behaviors
         services.AddScoped<IPipelineBehavior<TestRequest, string>, TestPipelineBehavior<TestRequest, string>>();
         services.AddScoped<IPipelineBehavior<TestRequestVoid, Unit>, TestPipelineBehaviorVoid<TestRequestVoid>>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
 
         _mediator = serviceProvider.GetRequiredService<IMediator>();
     }
-    
+
     /// <summary>
     /// Benchmark request handling with response
     /// </summary>
@@ -46,7 +34,7 @@ public class PerformanceBenchmarks
     {
         var request = new TestRequest { Message = "Hello World" };
         var stopwatch = Stopwatch.StartNew();
-        
+
         for (int i = 0; i < iterations; i++)
         {
             var response = await _mediator.Send(request);
@@ -55,9 +43,9 @@ public class PerformanceBenchmarks
                 throw new InvalidOperationException("Unexpected response");
             }
         }
-        
+
         stopwatch.Stop();
-        
+
         return new()
         {
             Operation = "Request with Response",
@@ -67,7 +55,7 @@ public class PerformanceBenchmarks
             OperationsPerSecond = iterations / stopwatch.Elapsed.TotalSeconds
         };
     }
-    
+
     /// <summary>
     /// Benchmark request handling without response
     /// </summary>
@@ -75,14 +63,14 @@ public class PerformanceBenchmarks
     {
         var request = new TestRequestVoid { Message = "Hello World" };
         var stopwatch = Stopwatch.StartNew();
-        
+
         for (int i = 0; i < iterations; i++)
         {
             await _mediator.Send(request);
         }
-        
+
         stopwatch.Stop();
-        
+
         return new()
         {
             Operation = "Request without Response",
@@ -92,7 +80,7 @@ public class PerformanceBenchmarks
             OperationsPerSecond = iterations / stopwatch.Elapsed.TotalSeconds
         };
     }
-    
+
     /// <summary>
     /// Benchmark notification publishing
     /// </summary>
@@ -100,14 +88,14 @@ public class PerformanceBenchmarks
     {
         var notification = new TestNotification { Message = "Hello World" };
         var stopwatch = Stopwatch.StartNew();
-        
+
         for (int i = 0; i < iterations; i++)
         {
             await _mediator.Publish(notification);
         }
-        
+
         stopwatch.Stop();
-        
+
         return new()
         {
             Operation = "Notification Publishing",
@@ -117,27 +105,27 @@ public class PerformanceBenchmarks
             OperationsPerSecond = iterations / stopwatch.Elapsed.TotalSeconds
         };
     }
-    
+
     /// <summary>
     /// Run all benchmarks
     /// </summary>
     public async Task<List<BenchmarkResult>> RunAllBenchmarks()
     {
         var results = new List<BenchmarkResult>();
-        
+
         Console.WriteLine("Running Flume Performance Benchmarks...");
         Console.WriteLine("=====================================");
-        
+
         // Warm up
         await _mediator.Send(new TestRequest { Message = "Warmup" });
         await _mediator.Send(new TestRequestVoid { Message = "Warmup" });
         await _mediator.Publish(new TestNotification { Message = "Warmup" });
-        
+
         // Run benchmarks
         results.Add(await BenchmarkRequestWithResponse());
         results.Add(await BenchmarkRequestWithoutResponse());
         results.Add(await BenchmarkNotificationPublishing());
-        
+
         // Display results
         foreach (var result in results)
         {
@@ -148,7 +136,7 @@ public class PerformanceBenchmarks
             Console.WriteLine($"  Operations/Second: {result.OperationsPerSecond:F0}");
             Console.WriteLine();
         }
-        
+
         return results;
     }
 }

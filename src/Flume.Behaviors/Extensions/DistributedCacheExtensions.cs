@@ -7,6 +7,14 @@ namespace Flume.Behaviors.Extensions;
 
 internal static class DistributedCacheExtensions
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNamingPolicy = null,
+        WriteIndented = false,
+        AllowTrailingCommas = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
+
     public static Task SetAsync<T>(
         this IDistributedCache cache,
         string key,
@@ -23,7 +31,7 @@ internal static class DistributedCacheExtensions
         DistributedCacheEntryOptions options,
         CancellationToken cancellationToken = default)
     {
-        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value, GetJsonSerializerOptions()));
+        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value, SerializerOptions));
 
         return cache.SetAsync(key, bytes, options, cancellationToken);
     }
@@ -34,7 +42,7 @@ internal static class DistributedCacheExtensions
         CancellationToken cancellationToken = default)
     {
         var bytes = await cache.GetAsync(key, cancellationToken);
-        var value = bytes == null ? default : JsonSerializer.Deserialize<T>(bytes, GetJsonSerializerOptions());
+        var value = bytes == null ? default : JsonSerializer.Deserialize<T>(bytes, SerializerOptions);
 
         return value ?? default;
     }
@@ -63,20 +71,9 @@ internal static class DistributedCacheExtensions
         }
 
         value = await factory();
-        
+
         await cache.SetAsync(key, value, options, cancellationToken);
 
         return value;
-    }
-
-    private static JsonSerializerOptions GetJsonSerializerOptions()
-    {
-        return new()
-        {
-            PropertyNamingPolicy = null,
-            WriteIndented = true,
-            AllowTrailingCommas = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
     }
 }

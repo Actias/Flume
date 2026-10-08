@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Flume.Behaviors;
 
-public sealed class PerformanceBehaviour<TRequest, TResponse>(ILogger<TRequest> logger) 
+public sealed class PerformanceBehaviour<TRequest, TResponse>(ILogger<TRequest> logger)
     : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -33,15 +33,16 @@ public sealed class PerformanceBehaviour<TRequest, TResponse>(ILogger<TRequest> 
         var endTime = Stopwatch.GetTimestamp();
 
         var elapsed = Stopwatch.GetElapsedTime(startTime, endTime);
+        var elapsedMilliseconds = (long)elapsed.TotalMilliseconds;
 
         if (elapsed > TimeSpan.FromMilliseconds(warningMilliseconds))
         {
-            logger.LogPerformance(typeof(TRequest).Name, elapsed.Milliseconds, request);
+            logger.LogPerformance(typeof(TRequest).Name, elapsedMilliseconds, request);
         }
 
         if (errorMilliseconds is not null && elapsed > TimeSpan.FromMilliseconds(errorMilliseconds.Value))
         {
-            logger.LogPerformance(typeof(TRequest).Name, elapsed.Milliseconds, request);
+            logger.LogPerformance(typeof(TRequest).Name, elapsedMilliseconds, request);
         }
 
         return response;

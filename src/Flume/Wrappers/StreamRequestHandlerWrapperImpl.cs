@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Flume.Pipelines;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,36 +9,36 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Flume.Wrappers;
 
 /// <summary>
-/// Implementation of stream request handler wrapper
+/// Implementation of stream request handler wrapper.
+/// The object overload uses the same behavior chain as the generic overload.
 /// </summary>
 internal sealed class StreamRequestHandlerWrapperImpl<TRequest, TResponse> : StreamRequestHandlerWrapper<TResponse>
     where TRequest : IStreamRequest<TResponse>
 {
-    public override IAsyncEnumerable<TResponse> Handle(IStreamRequest<TResponse> request, IServiceProvider serviceProvider, CancellationToken cancellationToken)
+    public override IAsyncEnumerable<TResponse> Handle(
+        IStreamRequest<TResponse> request,
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken)
     {
         var handler = serviceProvider.GetRequiredService<IStreamRequestHandler<TRequest, TResponse>>();
-        
-        // Get stream pipeline behaviors in reverse order for proper execution
-        var behaviors = serviceProvider.GetServices<IStreamPipelineBehavior<TRequest, TResponse>>().Reverse().ToArray();
+        var behaviors = serviceProvider.GetServices<IStreamPipelineBehavior<TRequest, TResponse>>().Reverse();
 
-        // Apply stream pipeline behaviors
-        var result = behaviors.Aggregate((StreamHandlerDelegate<TResponse>)HandlerDelegate, (nextDelegate, behavior) => 
-            () => behavior.Handle((TRequest)request, nextDelegate, cancellationToken));
-        
-        return result();
+        return behaviors.Aggregate(
+            (StreamHandlerDelegate<TResponse>)Handler,
+            (next, behavior) => token => behavior.Handle((TRequest)request, next, token))(cancellationToken);
 
-        // Create the handler delegate
-        IAsyncEnumerable<TResponse> HandlerDelegate() => handler.Handle((TRequest)request, cancellationToken);
+        IAsyncEnumerable<TResponse> Handler(CancellationToken token = default) =>
+            handler.Handle((TRequest)request, token);
     }
 
-    public override async IAsyncEnumerable<object?> Handle(object request, IServiceProvider serviceProvider, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+    public override async IAsyncEnumerable<object?> Handle(
+        object request,
+        IServiceProvider serviceProvider,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var handler = serviceProvider.GetRequiredService<IStreamRequestHandler<TRequest, TResponse>>();
-
-        await foreach (var item in handler.Handle((TRequest)request, cancellationToken))
+        await foreach (var item in Handle((IStreamRequest<TResponse>)request, serviceProvider, cancellationToken))
         {
             yield return item;
         }
     }
 }
-

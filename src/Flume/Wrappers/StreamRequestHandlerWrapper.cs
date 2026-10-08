@@ -19,4 +19,3 @@ internal abstract class StreamRequestHandlerWrapper<TResponse> : StreamRequestHa
 {
     public abstract IAsyncEnumerable<TResponse> Handle(IStreamRequest<TResponse> request, IServiceProvider serviceProvider, CancellationToken cancellationToken);
 }
-

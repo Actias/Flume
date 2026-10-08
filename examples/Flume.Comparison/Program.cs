@@ -11,8 +11,14 @@ namespace Flume.Comparison;
 
 public static class Program
 {
-    public static async Task Main()
+    public static async Task Main(string[] args)
     {
+        if (args.Length > 0)
+        {
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+            return;
+        }
+
         Console.WriteLine("=== Flume vs MediatR 12.5.0 Comparison ===\n");
 
         // Feature comparison
@@ -24,11 +30,11 @@ public static class Program
         Console.WriteLine("Running performance benchmarks...");
 
         BenchmarkRunner.Run<MediatorBenchmarks>();
-        
+
         Console.WriteLine("\nRunning memory allocation benchmarks...");
-        
+
         BenchmarkRunner.Run<MemoryAllocationBenchmarks>();
-        
+
         Console.WriteLine("\nBenchmark completed! Check the results above.");
     }
 
@@ -113,7 +119,7 @@ public static class Program
 
         var mediatRTime = Stopwatch.GetElapsedTime(mediatRStart, mediatREnd);
         var flumeTime = Stopwatch.GetElapsedTime(flumeStart, flumeEnd);
-        
+
         Console.WriteLine($"MediatR: {mediatRTime.Ticks} ticks for {iterations} requests.");
         Console.WriteLine($"Flume: {flumeTime.Ticks} ticks for {iterations} requests.");
 

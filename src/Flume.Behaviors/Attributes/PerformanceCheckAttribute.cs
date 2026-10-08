@@ -3,7 +3,7 @@
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class PerformanceCheckAttribute(
     long executionWarningInMilliseconds = PerformanceCheckAttribute.DefaultExecutionWarningInMilliseconds,
-    long? executionErrorInMilliseconds = PerformanceCheckAttribute.DefaultExecutionErrorInMilliseconds
+    long executionErrorInMilliseconds = PerformanceCheckAttribute.DefaultExecutionErrorInMilliseconds
 ) : Attribute
 {
     public const long DefaultExecutionWarningInMilliseconds = 1000;

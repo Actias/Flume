@@ -16,7 +16,7 @@ namespace Flume.Pipelines;
 /// </summary>
 /// <typeparam name="TRequest">Request type</typeparam>
 /// <typeparam name="TResponse">Response type</typeparam>
-public class RequestExceptionActionProcessorBehavior<TRequest, TResponse>(IServiceProvider serviceProvider) 
+public class RequestExceptionActionProcessorBehavior<TRequest, TResponse>(IServiceProvider serviceProvider)
     : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
     /// <inheritdoc/>
@@ -42,8 +42,8 @@ public class RequestExceptionActionProcessorBehavior<TRequest, TResponse>(IServi
                 try
                 {
                     await ((Task)(actionForException.MethodInfo.Invoke(actionForException.Action, [
-                                      request, 
-                                      exception, 
+                                      request,
+                                      exception,
                                       cancellationToken
                                   ])
                                   ?? throw new InvalidOperationException($"Could not create task for action method {actionForException.MethodInfo}."))).ConfigureAwait(false);

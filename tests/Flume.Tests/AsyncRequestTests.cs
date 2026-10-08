@@ -23,7 +23,7 @@ public sealed class AsyncRequestTests
 
         // Act
         var result = await mediator.Send(new AsyncRequest(value));
-        
+
         // Assert
         Assert.Equal(value, result);
     }

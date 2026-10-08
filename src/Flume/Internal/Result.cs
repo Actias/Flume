@@ -21,44 +21,44 @@ public readonly struct Result<T>
     /// </summary>
     public readonly bool IsSuccess;
     public readonly string? Error;
-    
+
     private Result(T? value, bool isSuccess, string? error)
     {
         Value = value;
         IsSuccess = isSuccess;
         Error = error;
     }
-    
+
     /// <summary>
     /// Create a successful result
     /// </summary>
     public static Result<T> Success(T value) => new(value, true, null);
-    
+
     /// <summary>
     /// Create a failed result
     /// </summary>
     public static Result<T> Failure(string error) => new(default, false, error);
-    
+
     /// <summary>
     /// Create a failed result with exception
     /// </summary>
     public static Result<T> Failure(Exception exception) => new(default, false, exception.Message);
-    
+
     /// <summary>
     /// Implicit conversion from value to success result
     /// </summary>
     public static implicit operator Result<T>(T value) => Success(value);
-    
+
     /// <summary>
     /// Implicit conversion from string error to failure result
     /// </summary>
     public static implicit operator Result<T>(string error) => Failure(error);
-    
+
     /// <summary>
     /// Implicit conversion from exception to failure result
     /// </summary>
     public static implicit operator Result<T>(Exception exception) => Failure(exception);
-    
+
     /// <summary>
     /// Deconstruct the result into its components
     /// </summary>
@@ -68,7 +68,7 @@ public readonly struct Result<T>
         value = Value;
         error = Error;
     }
-    
+
     /// <summary>
     /// Match on success or failure
     /// </summary>
@@ -76,7 +76,7 @@ public readonly struct Result<T>
     {
         return IsSuccess ? onSuccess(Value!) : onFailure(Error!);
     }
-    
+
     /// <summary>
     /// Execute action on success
     /// </summary>
@@ -88,7 +88,7 @@ public readonly struct Result<T>
         }
         return this;
     }
-    
+
     /// <summary>
     /// Execute action on failure
     /// </summary>
@@ -100,7 +100,7 @@ public readonly struct Result<T>
         }
         return this;
     }
-    
+
     /// <summary>
     /// Map the success value to a new type
     /// </summary>
@@ -108,7 +108,7 @@ public readonly struct Result<T>
     {
         return IsSuccess ? Result<TResult>.Success(mapper(Value!)) : Result<TResult>.Failure(Error!);
     }
-    
+
     /// <summary>
     /// Flat map the result to another result
     /// </summary>
@@ -125,38 +125,38 @@ public readonly struct Result
 {
     public readonly bool IsSuccess;
     public readonly string? Error;
-    
+
     private Result(bool isSuccess, string? error)
     {
         IsSuccess = isSuccess;
         Error = error;
     }
-    
+
     /// <summary>
     /// Create a successful result
     /// </summary>
     public static Result Success() => new(true, null);
-    
+
     /// <summary>
     /// Create a failed result
     /// </summary>
     public static Result Failure(string error) => new(false, error);
-    
+
     /// <summary>
     /// Create a failed result with exception
     /// </summary>
     public static Result Failure(Exception exception) => new(false, exception.Message);
-    
+
     /// <summary>
     /// Implicit conversion from string error to failure result
     /// </summary>
     public static implicit operator Result(string error) => Failure(error);
-    
+
     /// <summary>
     /// Implicit conversion from exception to failure result
     /// </summary>
     public static implicit operator Result(Exception exception) => Failure(exception);
-    
+
     /// <summary>
     /// Deconstruct the result into its components
     /// </summary>
@@ -165,7 +165,7 @@ public readonly struct Result
         isSuccess = IsSuccess;
         error = Error;
     }
-    
+
     /// <summary>
     /// Match on success or failure
     /// </summary>
@@ -173,7 +173,7 @@ public readonly struct Result
     {
         return IsSuccess ? onSuccess() : onFailure(Error!);
     }
-    
+
     /// <summary>
     /// Execute action on success
     /// </summary>
@@ -185,7 +185,7 @@ public readonly struct Result
         }
         return this;
     }
-    
+
     /// <summary>
     /// Execute action on failure
     /// </summary>

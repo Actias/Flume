@@ -26,7 +26,8 @@ public interface IStreamPipelineBehavior<in TRequest, TResponse>
 /// Represents an async continuation for the next task to execute in the stream pipeline
 /// </summary>
 /// <typeparam name="TResponse">Response type</typeparam>
+/// <param name="cancellationToken">Cancellation token</param>
 /// <returns>Stream of responses</returns>
 #pragma warning disable CA1711 // Delegate naming follows .NET ecosystem conventions
-public delegate IAsyncEnumerable<TResponse> StreamHandlerDelegate<out TResponse>();
+public delegate IAsyncEnumerable<TResponse> StreamHandlerDelegate<out TResponse>(CancellationToken cancellationToken = default);
 #pragma warning restore CA1711

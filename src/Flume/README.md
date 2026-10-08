@@ -1,6 +1,6 @@
 # Flume
 
-A fast, lightweight, and simple mediator pattern implementation for .NET. A drop-in replacement for MediatR 12.x
+A fast, lightweight, and simple mediator pattern implementation for .NET. A drop-in replacement for MediatR 12.x. Targets `net10.0` and `net11.0`.
 
 ## Features
 
@@ -24,8 +24,7 @@ dotnet add package Flume
 // Register services
 var services = new ServiceCollection();
 
-services.AddFlume(Assembly);
-services.AddScoped<IRequestHandler<Ping, Pong>, PingHandler>();
+services.AddFlume(cfg => cfg.RegisterServicesFromAssemblyContaining<PingHandler>());
 
 var serviceProvider = services.BuildServiceProvider();
 var mediator = serviceProvider.GetRequiredService<IMediator>();

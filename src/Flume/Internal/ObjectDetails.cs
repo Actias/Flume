@@ -135,7 +135,7 @@ internal sealed class ObjectDetails : IComparer<ObjectDetails>
         {
             return 1;
         }
-        
+
         if (x.Location.Length > y.Location.Length)
         {
             return -1;

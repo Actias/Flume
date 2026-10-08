@@ -1,10 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <TargetFrameworks>$(FlumeTargetFrameworks)</TargetFrameworks>
         <Nullable>enable</Nullable>
         <Features>strict</Features>
         <IsPackable>false</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
 

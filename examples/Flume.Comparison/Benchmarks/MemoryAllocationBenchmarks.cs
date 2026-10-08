@@ -29,7 +29,6 @@ public class MemoryAllocationBenchmarks
         // Setup Flume
         var flumeServices = new ServiceCollection();
         flumeServices.AddFlume(cfg => cfg.RegisterServicesFromAssembly(typeof(MemoryAllocationBenchmarks).Assembly));
-        flumeServices.AddScoped<IRequestHandler<FlumeRequest, string>, FlumeHandler>();
         var flumeProvider = flumeServices.BuildServiceProvider();
         _flume = flumeProvider.GetRequiredService<IMediator>();
 

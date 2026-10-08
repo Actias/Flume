@@ -35,7 +35,7 @@ internal static class LoggingExtensions
 
     public static void LogExecutionFailed(this ILogger logger, string request, object data, Exception exception)
         => LogExecutionFailedAction(logger, request, exception.Message, data, exception);
-    
+
     public static void LogExecutionData(this ILogger logger, string source, object data)
         => LogExecutionDataAction(logger, source, data, null);
 }
